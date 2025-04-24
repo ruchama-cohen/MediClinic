@@ -19,7 +19,7 @@ public partial class DB_Manager : DbContext
 
     public virtual DbSet<Appointment> Appointments { get; set; }
 
-    public virtual DbSet<AppointmentStatus> AppointmentStatuses { get; set; }
+    public virtual DbSet<AppointmentsSlot> AppointmentsSlots { get; set; }
 
     public virtual DbSet<Branch> Branches { get; set; }
 
@@ -55,43 +55,40 @@ public partial class DB_Manager : DbContext
 
         modelBuilder.Entity<Appointment>(entity =>
         {
-            entity.HasKey(e => e.AppointmentId).HasName("PK__Appointm__8ECDFCA2BB87AADE");
+            entity.HasKey(e => e.AppointmentId).HasName("PK__tmp_ms_x__8ECDFCA2E7D038B4");
 
             entity.Property(e => e.AppointmentId).HasColumnName("AppointmentID");
-            entity.Property(e => e.BranchId).HasColumnName("BranchID");
             entity.Property(e => e.PatientId).HasColumnName("PatientID");
-            entity.Property(e => e.ProviderId).HasColumnName("ProviderID");
-            entity.Property(e => e.StatusId).HasColumnName("StatusID");
-
-            entity.HasOne(d => d.Branch).WithMany(p => p.Appointments)
-                .HasForeignKey(d => d.BranchId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Appointme__Branc__4CA06362");
+            entity.Property(e => e.SlotId).HasColumnName("SlotID");
 
             entity.HasOne(d => d.Patient).WithMany(p => p.Appointments)
                 .HasForeignKey(d => d.PatientId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Appointme__Patie__4AB81AF0");
+                .HasConstraintName("FK__Appointme__Patie__6383C8BA");
 
-            entity.HasOne(d => d.Provider).WithMany(p => p.Appointments)
-                .HasForeignKey(d => d.ProviderId)
+            entity.HasOne(d => d.Slot).WithMany(p => p.Appointments)
+                .HasForeignKey(d => d.SlotId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Appointme__Provi__49C3F6B7");
-
-            entity.HasOne(d => d.Status).WithMany(p => p.Appointments)
-                .HasForeignKey(d => d.StatusId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Appointme__Statu__4BAC3F29");
+                .HasConstraintName("FK__Appointme__SlotI__6477ECF3");
         });
 
-        modelBuilder.Entity<AppointmentStatus>(entity =>
+        modelBuilder.Entity<AppointmentsSlot>(entity =>
         {
-            entity.HasKey(e => e.StatusId).HasName("PK__Appointm__C8EE20435B67B78F");
+            entity.HasKey(e => e.SlotId).HasName("PK__Appointm__0A124A4FE839B173");
 
-            entity.Property(e => e.StatusId).HasColumnName("StatusID");
-            entity.Property(e => e.StatusName)
-                .HasMaxLength(50)
-                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
+            entity.Property(e => e.SlotId).HasColumnName("SlotID");
+            entity.Property(e => e.BranchId).HasColumnName("BranchID");
+            entity.Property(e => e.ProviderId).HasColumnName("ProviderID");
+
+            entity.HasOne(d => d.Branch).WithMany(p => p.AppointmentsSlots)
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Appointme__Branc__60A75C0F");
+
+            entity.HasOne(d => d.Provider).WithMany(p => p.AppointmentsSlots)
+                .HasForeignKey(d => d.ProviderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Appointme__Provi__5FB337D6");
         });
 
         modelBuilder.Entity<Branch>(entity =>
@@ -198,9 +195,6 @@ public partial class DB_Manager : DbContext
             entity.Property(e => e.WorkHourId).HasColumnName("WorkHourID");
             entity.Property(e => e.BranchId).HasColumnName("BranchID");
             entity.Property(e => e.ProviderId).HasColumnName("ProviderID");
-            entity.Property(e => e.Weekday)
-                .HasMaxLength(10)
-                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
 
             entity.HasOne(d => d.Branch).WithMany(p => p.WorkHours)
                 .HasForeignKey(d => d.BranchId)

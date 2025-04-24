@@ -9,7 +9,7 @@ public partial class WorkHour
 
     public int BranchId { get; set; }
 
-    public string Weekday { get; set; } = null!;
+    public int Weekday { get; set; }
 
     public TimeOnly StartTime { get; set; }
 

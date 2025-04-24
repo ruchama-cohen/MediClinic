@@ -21,7 +21,7 @@ public partial class Branch
 
     public virtual Address Address { get; set; } = null!;
 
-    public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+    public virtual ICollection<AppointmentsSlot> AppointmentsSlots { get; set; } = new List<AppointmentsSlot>();
 
     public virtual ClinicService BranchManager { get; set; } = null!;
 

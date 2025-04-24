@@ -25,7 +25,7 @@ public partial class ServiceProvider
 
     public int? MeetingTime { get; set; }
 
-    public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+    public virtual ICollection<AppointmentsSlot> AppointmentsSlots { get; set; } = new List<AppointmentsSlot>();
 
     public virtual Branch Branch { get; set; } = null!;
 
