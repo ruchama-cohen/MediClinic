@@ -12,8 +12,8 @@ namespace DAL.API
         Task AddAddress(Address address);
         Task<Address?> SearchAddress(Address address);
 
-        Task<string?> GetCityByIdAsync(int id);
-        Task<bool> DeleteAddressAsync(int id);
+        Task<string?> GetCityById(int id);
+        Task<bool> DeleteAddress(int id);
 
     }
 }
