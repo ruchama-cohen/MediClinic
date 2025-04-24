@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DAL.API;
 
-namespace DAL.API
+namespace DAL.Services
 {
-    internal interface AddressManagement
+    internal class AddressManagement
     {
     }
 }
