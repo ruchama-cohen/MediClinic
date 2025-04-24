@@ -11,7 +11,7 @@ public partial class ServiceProvider
 
     public int ServiceId { get; set; }
 
-    public int BranchId { get; set; }
+    public int BranchToProviderId { get; set; }
 
     public string Phone { get; set; } = null!;
 
@@ -27,7 +27,9 @@ public partial class ServiceProvider
 
     public virtual ICollection<AppointmentsSlot> AppointmentsSlots { get; set; } = new List<AppointmentsSlot>();
 
-    public virtual Branch Branch { get; set; } = null!;
+    public virtual BranchToServiceProvider BranchToProvider { get; set; } = null!;
+
+    public virtual ICollection<BranchToServiceProvider> BranchToServiceProviders { get; set; } = new List<BranchToServiceProvider>();
 
     public virtual ClinicService Service { get; set; } = null!;
 

@@ -23,6 +23,8 @@ public partial class DB_Manager : DbContext
 
     public virtual DbSet<Branch> Branches { get; set; }
 
+    public virtual DbSet<BranchToServiceProvider> BranchToServiceProviders { get; set; }
+
     public virtual DbSet<ClinicService> ClinicServices { get; set; }
 
     public virtual DbSet<Patient> Patients { get; set; }
@@ -116,6 +118,23 @@ public partial class DB_Manager : DbContext
                 .HasConstraintName("FK__Branches__Branch__3B75D760");
         });
 
+        modelBuilder.Entity<BranchToServiceProvider>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__BranchTo__3214EC0762546FCD");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+
+            entity.HasOne(d => d.Branch).WithMany(p => p.BranchToServiceProviders)
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__BranchToS__Branc__70DDC3D8");
+
+            entity.HasOne(d => d.ServicProvider).WithMany(p => p.BranchToServiceProviders)
+                .HasForeignKey(d => d.ServicProviderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__BranchToS__Servi__6FE99F9F");
+        });
+
         modelBuilder.Entity<ClinicService>(entity =>
         {
             entity.HasKey(e => e.ServiceId).HasName("PK__ClinicSe__C51BB0EA79CDD871");
@@ -159,7 +178,7 @@ public partial class DB_Manager : DbContext
             entity.HasKey(e => e.ProviderId).HasName("PK__ServiceP__B54C689D9AE2A9A5");
 
             entity.Property(e => e.ProviderId).HasColumnName("ProviderID");
-            entity.Property(e => e.BranchId).HasColumnName("BranchID");
+            entity.Property(e => e.BranchToProviderId).HasColumnName("BranchToProviderID");
             entity.Property(e => e.Email)
                 .HasMaxLength(100)
                 .UseCollation("SQL_Latin1_General_CP1_CI_AS");
@@ -177,10 +196,10 @@ public partial class DB_Manager : DbContext
                 .UseCollation("SQL_Latin1_General_CP1_CI_AS");
             entity.Property(e => e.ServiceId).HasColumnName("ServiceID");
 
-            entity.HasOne(d => d.Branch).WithMany(p => p.ServiceProviders)
-                .HasForeignKey(d => d.BranchId)
+            entity.HasOne(d => d.BranchToProvider).WithMany(p => p.ServiceProviders)
+                .HasForeignKey(d => d.BranchToProviderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ServicePr__Branc__440B1D61");
+                .HasConstraintName("FK__ServicePr__Branc__71D1E811");
 
             entity.HasOne(d => d.Service).WithMany(p => p.ServiceProviders)
                 .HasForeignKey(d => d.ServiceId)
