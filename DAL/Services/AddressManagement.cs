@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DAL.API
+namespace DAL.Services
 {
-    internal interface AddressManagement
+    internal class AddressManagement
     {
     }
 }
