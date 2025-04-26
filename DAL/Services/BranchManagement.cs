@@ -1,0 +1,76 @@
+﻿using DAL.API;
+using DAL.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using System.Net;
+
+namespace DAL.Services
+{
+    internal class BranchManagement : IBranchManagement
+    {
+        private readonly DB_Manager _context;
+
+        public BranchManagement()
+        {
+            _context = new DB_Manager();
+        }
+        public async Task AddBranch(Branch branch)
+        {
+            await _context.Set<Branch>().AddAsync(branch);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> DeleteBranch(int branchId)
+        {
+            var branch = await _context.Branches.FirstOrDefaultAsync(b => b.BranchId == branchId);
+            if (branch == null)
+                return false;
+            _context.Branches.Remove(branch);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<List<Branch>> GetAllBranches()
+        {
+            return await _context.Branches.ToListAsync();
+        }
+
+
+        public async Task<List<Branch>> GetBranchesByCity(string city)
+        {
+            return await _context.Branches
+                .Where(b => b.Address.City == city)
+                .ToListAsync();
+        }
+
+        public async Task<List<Branch>> GetBranchesByDoctor(string doctorName)
+        {
+            return await _context.Branches
+        .Include(b => b.BranchToServiceProviders)
+            .ThenInclude(btsp => btsp.ServicProvider) 
+        .Where(b => b.BranchToServiceProviders
+            .Any(btsp => btsp.ServicProvider.Name.Equals(doctorName, StringComparison.OrdinalIgnoreCase)))
+        .ToListAsync();
+
+        }
+
+        public async Task<bool> UpdateBranchDetails(Branch updatedBranch)
+        {
+            var branch = await _context.Branches.FindAsync(updatedBranch.BranchId);
+
+            if (branch == null)
+                throw new Exception("Branch not found");
+
+            _context.Entry(branch).CurrentValues.SetValues(updatedBranch);
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+
+    }
+}
