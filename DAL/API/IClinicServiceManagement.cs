@@ -12,6 +12,5 @@ namespace DAL.API
         Task AddClinicService(ClinicService clinicService);
         Task<bool> DeleteClinicService(string serviceName);
 
-
     }
 }

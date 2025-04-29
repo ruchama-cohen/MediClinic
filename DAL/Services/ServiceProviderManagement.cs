@@ -1,5 +1,6 @@
 ﻿using DAL.API;
 using DAL.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -66,5 +67,15 @@ namespace DAL.Services
             return true;
 
         }
+        public async Task<List<ServiceProvider>> GetServiceProvidersByServiceIdWithDetails(int serviceId)
+        {
+            var serviceProviders = await _context.ServiceProviders
+                .Where(sp => sp.ServiceId == serviceId)
+                .Include(sp => sp.Service) // Load related ClinicService details
+                .ToListAsync();
+
+            return serviceProviders;
+        }
+
     }
 }
