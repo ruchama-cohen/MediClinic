@@ -12,5 +12,6 @@ namespace DAL.API
         Task AddServiceProvider(ServiceProvider serviceProvider);
         Task<bool> UpdateServiceProviderDetails(ServiceProvider serviceProvider);
         Task<bool> DeleteServiceProvider(int providerId);
+        Task<bool> UpdateServiceProvidersAvailability(int providerId);
     }
 }
