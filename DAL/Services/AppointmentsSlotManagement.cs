@@ -23,7 +23,7 @@ namespace DAL.Services
 
         }
 
-        
+
         public async Task<bool> DeleteAppointmentSlot(int appointmentId)
         {
             var appointmentSlot = await _context.AppointmentsSlots.FindAsync(appointmentId);
@@ -38,9 +38,9 @@ namespace DAL.Services
         }
 
 
-      
 
-       
+
+
         public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByCityAndServiceName(int serviceId, string cityName)
         {
             return await _context.AppointmentsSlots
@@ -53,11 +53,11 @@ namespace DAL.Services
         }
 
 
-     
 
-        public  async Task<List<AppointmentsSlot>?> GetAppointmentSlotByServiceName(int serviceType)
+
+        public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByServiceName(int serviceType)
         {
-            return await  _context.AppointmentsSlots
+            return await _context.AppointmentsSlots
                 .Where(a => a.Provider != null && a.Provider.ServiceId == serviceType)
                 .ToListAsync();
         }
@@ -74,7 +74,7 @@ namespace DAL.Services
 
         public async Task<List<AppointmentsSlot>?> GetAppointmentsSlotsByServiceProviderID(int serviceProviderID)
         {
-return await _context.AppointmentsSlots.Where(a => a.Provider != null && a.Provider.ProviderId == serviceProviderID).ToListAsync();
+            return await _context.AppointmentsSlots.Where(a => a.Provider != null && a.Provider.ProviderId == serviceProviderID).ToListAsync();
         }
 
         public async Task<bool> UpdateAppointmentSlotDetails(AppointmentsSlot updatedAppointmentsSlot)
@@ -82,10 +82,8 @@ return await _context.AppointmentsSlots.Where(a => a.Provider != null && a.Provi
             var appointmentsSlot = await _context.AppointmentsSlots.FindAsync(updatedAppointmentsSlot.BranchId);
 
             if (appointmentsSlot == null)
-                throw new Exception("Branch not found");
-
+                return false;
             _context.Entry(appointmentsSlot).CurrentValues.SetValues(updatedAppointmentsSlot);
-
             await _context.SaveChangesAsync();
             return true;
         }

@@ -58,6 +58,7 @@ namespace DAL.Services
 
         }
 
+
         public async Task<bool> UpdateBranchDetails(Branch updatedBranch)
         {
             var branch = await _context.Branches.FindAsync(updatedBranch.BranchId);
