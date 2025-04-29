@@ -35,12 +35,7 @@ namespace DAL.Services
             return true;
         }
 
-        public async Task<WorkHour?> SearchWorkHour(int branchId)
-        {
-            return await _context.WorkHours
-               .FirstOrDefaultAsync(x => x.BranchId == branchId);
-        }
-
+ 
         public async Task<bool> UpdateWorkHourDetails(WorkHour workHour)
         {
             var workHourN = await _context.WorkHours.FindAsync(workHour.WorkHourId);
@@ -53,5 +48,7 @@ namespace DAL.Services
             await _context.SaveChangesAsync();
             return true;
         }
+
+       
     }
 }
