@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace BLL.API
 {
-    public interface IPatientService
+    internal interface IBL
     {
-        public async Task<bool> ChangePassword(string oldPassword, string newPassword);
-
+        public IAuthService AuthService { get; set; }
+        public IPatientService PatientService { get; set; }
     }
 }

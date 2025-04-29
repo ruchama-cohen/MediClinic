@@ -7,11 +7,10 @@ namespace WebAPI.Controllers
     [ApiController]
     public class AppointmentsController : ControllerBase
     {
-        [HttpGet("GetAllAppointmentByNameOfServiceProvider")]
+        [HttpGet("AllAppointmentByNameOfServiceProvider")]
         public IActionResult GetServiceProviderByName(string name)
         {
-            // Simulate fetching data from a database
-            var serviceProviders = new List<string> { "John Doe", "Jane Smith", "Alice Johnson" };
+            var serviceProviders =
             // Filter the list based on the provided name
             var filteredProviders = serviceProviders.Where(sp => sp.Contains(name, StringComparison.OrdinalIgnoreCase)).ToList();
             if (filteredProviders.Count == 0)
