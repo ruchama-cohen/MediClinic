@@ -36,9 +36,17 @@ namespace DAL.Services
             return false;
         }
 
-        public Task<bool> UpdateServiceProviderDetails(ServiceProvider serviceProvider)
+        public async Task<bool> UpdateServiceProviderDetails(ServiceProvider serviceProvider)
         {
-            throw new NotImplementedException();
+            var serviceProviderN = await _context.ServiceProviders.FindAsync(serviceProvider.WorkHourId);
+
+            if (serviceProviderN == null)
+                throw new Exception("ServiceProvider not found");
+
+            _context.Entry(serviceProviderN).CurrentValues.SetValues(serviceProvider);
+
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }
