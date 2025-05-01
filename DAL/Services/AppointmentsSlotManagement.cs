@@ -93,7 +93,8 @@ namespace DAL.Services
         {
             var appointmentsSlot = await _context.AppointmentsSlots.FindAsync(appointmentId);
             if (appointmentsSlot == null) return false;
-            appointmentsSlot.IsBooked = !appointmentsSlot.IsBooked;
+            _context.Entry(appointmentsSlot).CurrentValues.SetValues(updatedAppointmentsSlot);
+            await _context.SaveChangesAsync();
             return true;
 
         }
