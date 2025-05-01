@@ -14,9 +14,9 @@ namespace DAL.Services
     {
         private readonly DB_Manager _context;
 
-        public ClinicServiceManagement()
+        public ClinicServiceManagement(DB_Manager context)
         {
-            _context = new DB_Manager();
+            _context = context;
         }
         public async Task AddClinicService(ClinicService clinicService)
         {
