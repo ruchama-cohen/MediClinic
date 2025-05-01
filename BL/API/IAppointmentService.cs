@@ -10,5 +10,6 @@ namespace BLL.API
     internal interface IAppointmentService
     {
         Task<List<Appointment>> GetAppointmentsByProviderNameAsync(string name);
+
     }
 }

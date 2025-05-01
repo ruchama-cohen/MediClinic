@@ -13,9 +13,9 @@ namespace DAL.Services
     {
         private readonly DB_Manager _context;
 
-        public AppointmentManagement()
+        public AppointmentManagement(DB_Manager context)
         {
-            _context = new DB_Manager();
+            _context = context;
         }
         public async Task AddAppointment(Appointment appointment)
         {

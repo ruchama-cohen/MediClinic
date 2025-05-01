@@ -35,7 +35,6 @@ namespace BL
             IServiceProviderManagement serviceProviderManagementDal = new ServiceProviderManagement(db);
             IWorkHourManagement workHourManagementDal = new WorkHourManagement(db);
 
-            // כאן צריך גם להזריק
             Trainers = new TrainerBL(trainerDal);
 
                

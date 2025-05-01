@@ -14,9 +14,9 @@ namespace DAL.Services
     {
         private readonly DB_Manager _context;
 
-        public AddressManagement()
+        public AddressManagement(DB_Manager context)
         {
-            _context = new DB_Manager();
+            _context = context;
         }
         public async Task AddAddress(Address address)
         {

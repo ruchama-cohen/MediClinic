@@ -14,9 +14,9 @@ namespace DAL.Services
     {
         private readonly DB_Manager _context;
 
-        public PatientsManagement()
+        public PatientsManagement(DB_Manager context)
         {
-            _context = new DB_Manager();
+            _context = context;
         }
         public async Task AddPatient(Patient patient)
         {
@@ -64,9 +64,9 @@ namespace DAL.Services
                 return false;
 
             _context.Entry(patientN).CurrentValues.SetValues(patient);
-
             await _context.SaveChangesAsync();
             return true;
         }
+
     }
 }

@@ -13,9 +13,9 @@ namespace DAL.Services
     {
         private readonly DB_Manager _context;
 
-        public AppointmentsSlotManagement()
+        public AppointmentsSlotManagement(DB_Manager context)
         {
-            _context = new DB_Manager();
+            _context = context;
         }
         public async Task AddAppointmentSlot(AppointmentsSlot appointmentSlot)
         {
