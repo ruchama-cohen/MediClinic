@@ -12,8 +12,12 @@ namespace BLL.Models
         [Required(ErrorMessage = "UserId is required.")]
         [StringLength(9, MinimumLength = 9, ErrorMessage = "UserId must be 9 characters long.")]
         int UserId { get; set; }
-        [Required(ErrorMessage = "Password is required.")]
-        [StringLength(15, MinimumLength = 4, ErrorMessage = "Password must be between 4 and 15 characters long.")]  
-        string Password { get; set; }
+        [Required(ErrorMessage = "User phone number is required.")]
+        [StringLength(10, MinimumLength = 10, ErrorMessage = "User phone number must be 10 characters long.")]
+        string UserPhone { get; set; }
+        [Required(ErrorMessage = "User birth date is required.")]
+        [DataType(DataType.Date)]
+        public DateOnly BirthDate { get; set; }
+
     }
 }

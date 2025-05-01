@@ -17,10 +17,7 @@ namespace BL
         {
             public IAuthService AuthService { get; set; }
             public IPatientService PatientService { get; set; }
-            // מתאמן
-            // עובד
-            // חדר 
-            //.... 
+            
 
             public BlManager()
             {
