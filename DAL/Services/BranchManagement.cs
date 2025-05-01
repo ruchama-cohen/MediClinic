@@ -10,7 +10,7 @@ using System.Net;
 
 namespace DAL.Services
 {
-    internal class BranchManagement : IBranchManagement
+    public class BranchManagement : IBranchManagement
     {
         private readonly DB_Manager _context;
 

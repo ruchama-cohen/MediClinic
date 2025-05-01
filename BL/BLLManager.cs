@@ -25,14 +25,20 @@ namespace BL
             public BlManager()
         {
             DB_Manager db = new DB_Manager();
-            IAddressManagement addressManagement = new AddressManagement(db);
+            IAddressManagement addressManagementDal = new AddressManagement(db);
+            IAppointmentManagement appointmentManagementDal = new AppointmentManagement(db);
+            IPatientsManagement patientsManagementDal = new PatientsManagement(db);
+            IAppointmentsSlotManagement appointmentsSlotManagementDal = new AppointmentsSlotManagement(db);
+            IBranchManagement branchManagementDal = new BranchManagement(db);
+            IBranchToServiceProviderManagement branchToServiceProviderManagementDal = new BranchToServiceProviderManagement(db);
+            IClinicServiceManagement clinicServiceManagementDal = new ClinicServiceManagement(db);
+            IServiceProviderManagement serviceProviderManagementDal = new ServiceProviderManagement(db);
+            IWorkHourManagement workHourManagementDal = new WorkHourManagement(db);
 
-            ITrainerDal trainerDal = new DAL.Services.TrainerDal(db);
-                // כאן צריך גם להזריק
-                Trainers = new TrainerBL(trainerDal);
+            // כאן צריך גם להזריק
+            Trainers = new TrainerBL(trainerDal);
 
-                IGymnastDal gymnastDal = new DAL.Services.GymnastDal(db);
-                Gymnasts = new GymnastBL(gymnastDal);
+               
             }
         }
     }

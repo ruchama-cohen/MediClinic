@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Services
 {
-    internal class WorkHourManagement: IWorkHourManagement
+    public class WorkHourManagement: IWorkHourManagement
     {
         private readonly DB_Manager _context;
 
