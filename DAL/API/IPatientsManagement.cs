@@ -9,8 +9,8 @@ namespace DAL.API
     internal interface IPatientsManagement
     {
         Task AddPatient(Patient patient);
-        Task UpdatePatient(Patient patient);
-        Task DeletePatient(int id);
+        Task<bool> UpdatePatient(Patient patient);
+        Task<bool> DeletePatient(int id);
         Task<Patient> GetPatientById(int id);
         Task<List<Patient>> GetAllPatients();
         Task<string> GetCityByID(int id);

@@ -41,7 +41,7 @@ namespace DAL.Services
             var workHourN = await _context.WorkHours.FindAsync(workHour.WorkHourId);
 
             if (workHourN == null)
-                throw new Exception("Branch not found");
+                return false;
 
             _context.Entry(workHourN).CurrentValues.SetValues(workHour);
 

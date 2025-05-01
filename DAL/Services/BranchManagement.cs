@@ -64,7 +64,7 @@ namespace DAL.Services
             var branch = await _context.Branches.FindAsync(updatedBranch.BranchId);
 
             if (branch == null)
-                throw new Exception("Branch not found");
+                return false;
 
             _context.Entry(branch).CurrentValues.SetValues(updatedBranch);
 
