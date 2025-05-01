@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DAL.API
 {
-    internal interface IBranchManagement
+    public interface IBranchManagement
     {
         Task<bool> UpdateBranchDetails(Branch branch);
 

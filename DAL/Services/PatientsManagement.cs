@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace DAL.Services
 {
-    internal class PatientsManagement : IPatientsManagement
+    public class PatientsManagement : IPatientsManagement
     {
         private readonly DB_Manager _context;
 

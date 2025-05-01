@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Services
 {
-    internal class ClinicServiceManagement : IClinicServiceManagement
+    public class ClinicServiceManagement : IClinicServiceManagement
     {
         private readonly DB_Manager _context;
 

@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Services
 {
-    internal class AppointmentsSlotManagement : IAppointmentsSlotManagement
+    public class AppointmentsSlotManagement : IAppointmentsSlotManagement
     {
         private readonly DB_Manager _context;
 

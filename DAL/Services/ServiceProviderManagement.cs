@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using ServiceProvider = DAL.Models.ServiceProvider;
 namespace DAL.Services
 {
-    internal class ServiceProviderManagement : IServiceProviderManagement
+    public class ServiceProviderManagement : IServiceProviderManagement
     {
         private readonly DB_Manager _context;
 

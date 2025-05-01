@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DAL.Services
 {
-    internal class BranchToServiceProviderManagement : IBranchToServiceProviderManagement
+    public class BranchToServiceProviderManagement : IBranchToServiceProviderManagement
     {
         private readonly DB_Manager _context;
 

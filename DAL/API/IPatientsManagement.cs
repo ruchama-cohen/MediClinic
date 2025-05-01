@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using DAL.Models;
 namespace DAL.API
 {
-    internal interface IPatientsManagement
+    public interface IPatientsManagement
     {
         Task AddPatient(Patient patient);
         Task<bool> UpdatePatient(Patient patient);

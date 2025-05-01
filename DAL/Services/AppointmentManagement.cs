@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DAL.Services
 {
-    internal class AppointmentManagement : IAppointmentManagement
+    public class AppointmentManagement : IAppointmentManagement
     {
         private readonly DB_Manager _context;
 
