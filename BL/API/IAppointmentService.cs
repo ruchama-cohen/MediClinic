@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BLL.API
 {
-    internal interface IAppointmentService
+    public interface IAppointmentService
     {
         Task<List<Appointment>> GetAppointmentsByProviderNameAsync(string name);
     }
