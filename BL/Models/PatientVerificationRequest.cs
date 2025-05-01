@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BLL.Models
 {
-    public class SignInRequest
+    public class PatientVerificationRequest
     {
         [Required(ErrorMessage = "UserId is required.")]
         [StringLength(9, MinimumLength = 9, ErrorMessage = "UserId must be 9 characters long.")]

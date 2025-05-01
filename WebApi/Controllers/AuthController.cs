@@ -14,16 +14,24 @@ namespace WebAPI.Controllers
             public async IActionResult Login(LogInRequest request)
             {
 
-
+             
                     }
 
-            [HttpPost("signup")]
-            public  async IActionResult SignIn(SignInRequest request)
+            [HttpPost("Patient Verification Request")]
+            public  async IActionResult PatientVerificationRequest(PatientVerificationRequest request)
             {
-                // הרשמת משתמש חדש
-            }
+            // בקשה לאימות משתמש
+        }
+        [HttpPost("SiteRegistrationRequest")]
 
-            [HttpPost("refresh-token")]
+        public async IActionResult SiteRegistrationRequest(SiteRegistrationRequest request)
+        {
+            // הרשמת משתמש חדש
+        }
+
+
+
+        [HttpPost("refresh-token")]
             public IActionResult RefreshToken(TokenRequest request)
             {
                 // רענון טוקן - אופציונלי

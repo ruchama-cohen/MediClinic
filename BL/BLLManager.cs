@@ -1,8 +1,11 @@
 ﻿
 using BLL.API;
 using BLL.Services;
+
 using DAL.API;
 using DAL.Models;
+using DAL.Services;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,9 +23,11 @@ namespace BL
             
 
             public BlManager()
-            {
-                DB_Manager db = new DB_Manager();
-                ITrainerDal trainerDal = new DAL.Services.TrainerDal(db);
+        {
+            DB_Manager db = new DB_Manager();
+            IAddressManagement addressManagement = new AddressManagement(db);
+
+            ITrainerDal trainerDal = new DAL.Services.TrainerDal(db);
                 // כאן צריך גם להזריק
                 Trainers = new TrainerBL(trainerDal);
 

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DAL.API
 {
-    internal interface IWorkHourManagement
+    public interface IWorkHourManagement
     {
         Task AddWorkHour(WorkHour workHour);
         Task<bool> UpdateWorkHourDetails(WorkHour workHour);

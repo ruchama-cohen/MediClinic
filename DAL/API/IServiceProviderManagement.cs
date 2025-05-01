@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DAL.API
 {
-    internal interface IServiceProviderManagement
+    public interface IServiceProviderManagement
     {
         Task AddServiceProvider(ServiceProvider serviceProvider);
         Task<bool> UpdateServiceProviderDetails(ServiceProvider serviceProvider);

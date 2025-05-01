@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DAL.API
 {
-    internal interface IBranchToServiceProviderManagement
+    public interface IBranchToServiceProviderManagement
     {
         Task AddBranchToServiceProvider(BranchToServiceProvider branchToServiceProvider);
         Task<bool> DeleteBranchToServiceProvider(int id);

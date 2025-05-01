@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DAL.API
 {
-    internal interface IClinicServiceManagement
+    public interface IClinicServiceManagement
     {
         Task AddClinicService(ClinicService clinicService);
         Task<bool> DeleteClinicService(string serviceName);

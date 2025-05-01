@@ -7,7 +7,7 @@ using DAL.Models;
 
 namespace DAL.API
 {
-    internal interface IAddressManagement
+    public interface IAddressManagement
     {
         Task AddAddress(Address address);
         Task<Address?> SearchAddress(Address address);

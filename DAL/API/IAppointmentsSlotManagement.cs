@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using DAL.Models;
 namespace DAL.API
 {
-    internal interface IAppointmentsSlotManagement
+    public interface IAppointmentsSlotManagement
     {
         Task AddAppointmentSlot(AppointmentsSlot appointmentSlot);
         Task<bool> DeleteAppointmentSlot(int appointmentId);
