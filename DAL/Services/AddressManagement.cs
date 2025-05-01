@@ -10,8 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Services
 {
-    public class AddressManagement : IAddressManagement
-
+    public  class AddressManagement : IAddressManagement
     {
         private readonly DB_Manager _context;
 

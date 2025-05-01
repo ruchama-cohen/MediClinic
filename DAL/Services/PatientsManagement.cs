@@ -64,9 +64,9 @@ namespace DAL.Services
                 return false;
 
             _context.Entry(patientN).CurrentValues.SetValues(patient);
-
             await _context.SaveChangesAsync();
             return true;
         }
+
     }
 }
