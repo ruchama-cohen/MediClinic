@@ -6,8 +6,13 @@ using System.Threading.Tasks;
 
 namespace BLL.Models
 {
-    internal class M_Patient
+    public class M_Patient
     {
+        public string PatientName { get; set; } = null!;
+        public string Email { get; set; } = null!;
+        public string Phone { get; set; } = null!;
+        public string PatientPassword { get; set; } = null!;
 
+        public int AddressId { get; set; }
     }
 }

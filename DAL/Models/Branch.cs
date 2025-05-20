@@ -25,7 +25,7 @@ public partial class Branch
 
     public virtual ClinicService BranchManager { get; set; } = null!;
 
-    public virtual ICollection<BranchToServiceProvider> BranchToServiceProviders { get; set; } = new List<BranchToServiceProvider>();
+    public virtual ICollection<ServiceProvider> ServiceProviders { get; set; } = new List<ServiceProvider>();
 
     public virtual ICollection<WorkHour> WorkHours { get; set; } = new List<WorkHour>();
 }

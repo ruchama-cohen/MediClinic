@@ -23,7 +23,7 @@ public partial class DB_Manager : DbContext
 
     public virtual DbSet<Branch> Branches { get; set; }
 
-    public virtual DbSet<BranchToServiceProvider> BranchToServiceProviders { get; set; }
+    public virtual DbSet<City> Cities { get; set; }
 
     public virtual DbSet<ClinicService> ClinicServices { get; set; }
 
@@ -31,45 +31,50 @@ public partial class DB_Manager : DbContext
 
     public virtual DbSet<ServiceProvider> ServiceProviders { get; set; }
 
+    public virtual DbSet<Street> Streets { get; set; }
+
     public virtual DbSet<WorkHour> WorkHours { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=C:\\למודים\\c# project\\MediClinic\\DAL\\data\\DB.mdf;Integrated Security=True;Connect Timeout=30");
+        => optionsBuilder.UseSqlServer("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=C:\\Users\\user\\Documents\\c# project\\MediClinic\\DAL\\data\\DB.mdf;Integrated Security=True;Connect Timeout=30");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Address>(entity =>
         {
-            entity.HasKey(e => e.AddressId).HasName("PK__Addresse__091C2A1B2979DC2E");
+            entity.HasKey(e => e.AddressId).HasName("PK__tmp_ms_x__091C2A1B8E00964C");
 
             entity.Property(e => e.AddressId).HasColumnName("AddressID");
-            entity.Property(e => e.City)
-                .HasMaxLength(100)
-                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
-            entity.Property(e => e.PostalCode)
-                .HasMaxLength(10)
-                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
-            entity.Property(e => e.Street)
-                .HasMaxLength(100)
-                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
+            entity.Property(e => e.PostalCode).HasMaxLength(10);
+
+            entity.HasOne(d => d.City).WithMany(p => p.Addresses)
+                .HasForeignKey(d => d.CityId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Addresses__CityI__787EE5A0");
+
+            entity.HasOne(d => d.Street).WithMany(p => p.Addresses)
+                .HasForeignKey(d => d.StreetId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Addresses__Stree__797309D9");
         });
 
         modelBuilder.Entity<Appointment>(entity =>
         {
             entity.HasKey(e => e.AppointmentId).HasName("PK__tmp_ms_x__8ECDFCA2E7D038B4");
 
+            entity.HasIndex(e => e.SlotId, "UQ_Appointments_Slot").IsUnique();
+
             entity.Property(e => e.AppointmentId).HasColumnName("AppointmentID");
-            entity.Property(e => e.PatientId).HasColumnName("PatientID");
             entity.Property(e => e.SlotId).HasColumnName("SlotID");
 
-            entity.HasOne(d => d.Patient).WithMany(p => p.Appointments)
-                .HasForeignKey(d => d.PatientId)
+            entity.HasOne(d => d.PatientKeyNavigation).WithMany(p => p.Appointments)
+                .HasForeignKey(d => d.PatientKey)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Appointme__Patie__6383C8BA");
+                .HasConstraintName("FK__Appointme__Patie__7E37BEF6");
 
-            entity.HasOne(d => d.Slot).WithMany(p => p.Appointments)
-                .HasForeignKey(d => d.SlotId)
+            entity.HasOne(d => d.Slot).WithOne(p => p.Appointment)
+                .HasForeignKey<Appointment>(d => d.SlotId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Appointme__SlotI__6477ECF3");
         });
@@ -80,17 +85,16 @@ public partial class DB_Manager : DbContext
 
             entity.Property(e => e.SlotId).HasColumnName("SlotID");
             entity.Property(e => e.BranchId).HasColumnName("BranchID");
-            entity.Property(e => e.ProviderId).HasColumnName("ProviderID");
 
             entity.HasOne(d => d.Branch).WithMany(p => p.AppointmentsSlots)
                 .HasForeignKey(d => d.BranchId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Appointme__Branc__60A75C0F");
 
-            entity.HasOne(d => d.Provider).WithMany(p => p.AppointmentsSlots)
-                .HasForeignKey(d => d.ProviderId)
+            entity.HasOne(d => d.ProviderKeyNavigation).WithMany(p => p.AppointmentsSlots)
+                .HasForeignKey(d => d.ProviderKey)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Appointme__Provi__5FB337D6");
+                .HasConstraintName("FK__Appointme__Provi__02FC7413");
         });
 
         modelBuilder.Entity<Branch>(entity =>
@@ -100,17 +104,13 @@ public partial class DB_Manager : DbContext
             entity.Property(e => e.BranchId).HasColumnName("BranchID");
             entity.Property(e => e.AddressId).HasColumnName("AddressID");
             entity.Property(e => e.BranchManagerId).HasColumnName("BranchManagerID");
-            entity.Property(e => e.BranchName)
-                .HasMaxLength(100)
-                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
-            entity.Property(e => e.Phone)
-                .HasMaxLength(15)
-                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
+            entity.Property(e => e.BranchName).HasMaxLength(100);
+            entity.Property(e => e.Phone).HasMaxLength(15);
 
             entity.HasOne(d => d.Address).WithMany(p => p.Branches)
                 .HasForeignKey(d => d.AddressId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Branches__Addres__3A81B327");
+                .HasConstraintName("FK__Branches__Addres__74AE54BC");
 
             entity.HasOne(d => d.BranchManager).WithMany(p => p.Branches)
                 .HasForeignKey(d => d.BranchManagerId)
@@ -118,21 +118,13 @@ public partial class DB_Manager : DbContext
                 .HasConstraintName("FK__Branches__Branch__3B75D760");
         });
 
-        modelBuilder.Entity<BranchToServiceProvider>(entity =>
+        modelBuilder.Entity<City>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__BranchTo__3214EC0762546FCD");
+            entity.HasKey(e => e.CityId).HasName("PK__City__F2D21B76DCF01A5F");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.ToTable("City");
 
-            entity.HasOne(d => d.Branch).WithMany(p => p.BranchToServiceProviders)
-                .HasForeignKey(d => d.BranchId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__BranchToS__Branc__70DDC3D8");
-
-            entity.HasOne(d => d.ServicProvider).WithMany(p => p.BranchToServiceProviders)
-                .HasForeignKey(d => d.ServicProviderId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__BranchToS__Servi__6FE99F9F");
+            entity.Property(e => e.Name).HasMaxLength(100);
         });
 
         modelBuilder.Entity<ClinicService>(entity =>
@@ -140,71 +132,67 @@ public partial class DB_Manager : DbContext
             entity.HasKey(e => e.ServiceId).HasName("PK__ClinicSe__C51BB0EA79CDD871");
 
             entity.Property(e => e.ServiceId).HasColumnName("ServiceID");
-            entity.Property(e => e.ServiceName)
-                .HasMaxLength(100)
-                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
+            entity.Property(e => e.ServiceName).HasMaxLength(100);
         });
 
         modelBuilder.Entity<Patient>(entity =>
         {
-            entity.HasKey(e => e.PatientId).HasName("PK__Patients__970EC3465DE6F86C");
+            entity.HasKey(e => e.PatientKey).HasName("PK__tmp_ms_x__E92C0061174DA5CF");
 
-            entity.Property(e => e.PatientId).HasColumnName("PatientID");
             entity.Property(e => e.AddressId).HasColumnName("AddressID");
-            entity.Property(e => e.Email)
+            entity.Property(e => e.Email).HasMaxLength(100);
+            entity.Property(e => e.Gender).HasMaxLength(10);
+            entity.Property(e => e.PatientId)
                 .HasMaxLength(100)
-                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
-            entity.Property(e => e.Gender)
-                .HasMaxLength(10)
-                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
-            entity.Property(e => e.PatientName)
-                .HasMaxLength(100)
-                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
-            entity.Property(e => e.PatientPassword)
-                .HasMaxLength(255)
-                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
-            entity.Property(e => e.Phone)
-                .HasMaxLength(15)
-                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
+                .HasColumnName("PatientID");
+            entity.Property(e => e.PatientName).HasMaxLength(100);
+            entity.Property(e => e.PatientPassword).HasMaxLength(255);
+            entity.Property(e => e.Phone).HasMaxLength(15);
 
             entity.HasOne(d => d.Address).WithMany(p => p.Patients)
                 .HasForeignKey(d => d.AddressId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Patients__Addres__4316F928");
+                .HasConstraintName("FK__Patients__Addres__7F2BE32F");
         });
 
         modelBuilder.Entity<ServiceProvider>(entity =>
         {
-            entity.HasKey(e => e.ProviderId).HasName("PK__ServiceP__B54C689D9AE2A9A5");
+            entity.HasKey(e => e.ProviderKey).HasName("PK__tmp_ms_x__8DE43C5EFF223585");
 
-            entity.Property(e => e.ProviderId).HasColumnName("ProviderID");
-            entity.Property(e => e.BranchToProviderId).HasColumnName("BranchToProviderID");
-            entity.Property(e => e.Email)
+            entity.Property(e => e.BranchId).HasColumnName("BranchID");
+            entity.Property(e => e.Email).HasMaxLength(100);
+            entity.Property(e => e.Gender).HasMaxLength(10);
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Password).HasMaxLength(255);
+            entity.Property(e => e.Phone).HasMaxLength(15);
+            entity.Property(e => e.ProviderId)
                 .HasMaxLength(100)
-                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
-            entity.Property(e => e.Gender)
-                .HasMaxLength(10)
-                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
-            entity.Property(e => e.Name)
-                .HasMaxLength(100)
-                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
-            entity.Property(e => e.Password)
-                .HasMaxLength(255)
-                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
-            entity.Property(e => e.Phone)
-                .HasMaxLength(15)
-                .UseCollation("SQL_Latin1_General_CP1_CI_AS");
+                .HasColumnName("ProviderID");
             entity.Property(e => e.ServiceId).HasColumnName("ServiceID");
 
-            entity.HasOne(d => d.BranchToProvider).WithMany(p => p.ServiceProviders)
-                .HasForeignKey(d => d.BranchToProviderId)
+            entity.HasOne(d => d.Branch).WithMany(p => p.ServiceProviders)
+                .HasForeignKey(d => d.BranchId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ServicePr__Branc__71D1E811");
+                .HasConstraintName("FK__ServicePr__Branc__00200768");
 
             entity.HasOne(d => d.Service).WithMany(p => p.ServiceProviders)
                 .HasForeignKey(d => d.ServiceId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ServicePr__Servi__44FF419A");
+                .HasConstraintName("FK__ServicePr__Servi__01142BA1");
+        });
+
+        modelBuilder.Entity<Street>(entity =>
+        {
+            entity.HasKey(e => e.StreetId).HasName("PK__Street__6270EB3A6FD6D3A6");
+
+            entity.ToTable("Street");
+
+            entity.Property(e => e.Name).HasMaxLength(100);
+
+            entity.HasOne(d => d.City).WithMany(p => p.Streets)
+                .HasForeignKey(d => d.CityId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Street__CityId__71D1E811");
         });
 
         modelBuilder.Entity<WorkHour>(entity =>
@@ -213,17 +201,16 @@ public partial class DB_Manager : DbContext
 
             entity.Property(e => e.WorkHourId).HasColumnName("WorkHourID");
             entity.Property(e => e.BranchId).HasColumnName("BranchID");
-            entity.Property(e => e.ProviderId).HasColumnName("ProviderID");
 
             entity.HasOne(d => d.Branch).WithMany(p => p.WorkHours)
                 .HasForeignKey(d => d.BranchId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__WorkHours__Branc__5165187F");
 
-            entity.HasOne(d => d.Provider).WithMany(p => p.WorkHours)
-                .HasForeignKey(d => d.ProviderId)
+            entity.HasOne(d => d.ProviderKeyNavigation).WithMany(p => p.WorkHours)
+                .HasForeignKey(d => d.ProviderKey)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__WorkHours__Provi__52593CB8");
+                .HasConstraintName("FK__WorkHours__Provi__02084FDA");
         });
 
         OnModelCreatingPartial(modelBuilder);

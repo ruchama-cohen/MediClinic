@@ -7,19 +7,45 @@ namespace WebAPI.Controllers
     [ApiController]
     public class AppointmentsController : ControllerBase
     {
-        [HttpGet("AllAppointmentByNameOfServiceProvider")]
-        public IActionResult GetServiceProviderByName(string name)
+        [HttpGet("clinics")] // GET api/appointments/clinics?doctorName=...
+        public async Task<IActionResult> GetClinics([FromQuery] string doctorName)
         {
-            var serviceProviders =
-            // Filter the list based on the provided name
-            var filteredProviders = serviceProviders.Where(sp => sp.Contains(name, StringComparison.OrdinalIgnoreCase)).ToList();
-            if (filteredProviders.Count == 0)
+            try
             {
-                return NotFound("No service providers found with the given name.");
+                // קריאה ל-BLL לקבלת המרפאות
+                var clinics = await _appointmentService.GetClinicsByDoctorAsync(doctorName);
+                return Ok(clinics); // מחזיר 200 OK עם הרשימה
             }
-            return Ok(filteredProviders);
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message); // מחזיר 400 עם הודעת שגיאה
+            }
         }
 
+        // פעולה שמחזירה את התורים של הרופא, עם סינון אופציונלי לפי מרפאה
+        [HttpGet("appointments")] // GET api/appointments/appointments?doctorName=...&clinicName=...
+        public async Task<IActionResult> GetAppointments([FromQuery] string doctorName, [FromQuery] string clinicName = null)
+        {
+            try
+            {
+                // קריאה ל-BLL לקבלת התורים
+                var appointments = await _appointmentService.GetAppointmentsByDoctorFilteredAsync(doctorName, clinicName);
+                return Ok(appointments); // מחזיר 200 OK עם התורים
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message); // מחזיר 400 עם שגיאה
+            }
+        }
 
+        [HttpDelete("cancel/{id}")]
+        public async Task<IActionResult> CancelAppointment(int id)
+        {
+            var success = await _appointmentService.CancelAppointmentAsync(id);
+            if (success)
+                return Ok(new { message = "Appointment canceled successfully." });
+
+            return NotFound(new { message = "Appointment not found." });
+        }
     }
 }

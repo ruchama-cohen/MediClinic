@@ -9,7 +9,7 @@ namespace BLL.API
 {
     public interface IAppointmentService
     {
-        Task<List<Appointment>> GetAppointmentsByProviderNameAsync(string name);
+        Task<List<Appointment>> GetAppointmentsByProviderNameAsync(string doctorName, string clinicName = null);
 
     }
 }

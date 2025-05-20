@@ -13,8 +13,8 @@ namespace DAL.API
         Task<bool> DeleteAppointmentSlot(int appointmentId);
 
         Task<bool> UpdateAppointmentSlotDetails(AppointmentsSlot appointmentSlot);
-        Task<List<AppointmentsSlot>?> GetAppointmentSlotByCityAndServiceName(int serviceName,string cityName);
-        Task <List<AppointmentsSlot>?> GetAppointmentsSlotsByServiceProviderID(int serviceProviderID);
+        Task<List<AppointmentsSlot>?> GetAppointmentSlotByCityAndServiceName(int serviceName, string cityName);
+        Task<List<AppointmentsSlot>?> GetAppointmentsSlotsByServiceProviderID(int serviceProviderID);
         Task<List<AppointmentsSlot>?> GetAppointmentSlotByServiceName(int serviceName);
         Task<List<AppointmentsSlot>?> GetAppointmentSlotByServiceProviderIDAndCity(int serviceProviderID, string cityName);
         Task<bool> UpdateQueueAvailability(int appointmentId);

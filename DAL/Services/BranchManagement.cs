@@ -51,7 +51,7 @@ namespace DAL.Services
         {
             return await _context.Branches
         .Include(b => b.BranchToServiceProviders)
-            .ThenInclude(btsp => btsp.ServicProvider) 
+            .ThenInclude(btsp => btsp.ServicProvider)
         .Where(b => b.BranchToServiceProviders
             .Any(btsp => btsp.ServicProvider.Name.Equals(doctorName, StringComparison.OrdinalIgnoreCase)))
         .ToListAsync();

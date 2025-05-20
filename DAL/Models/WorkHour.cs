@@ -15,9 +15,9 @@ public partial class WorkHour
 
     public TimeOnly EndTime { get; set; }
 
-    public int ProviderId { get; set; }
+    public int ProviderKey { get; set; }
 
     public virtual Branch Branch { get; set; } = null!;
 
-    public virtual ServiceProvider Provider { get; set; } = null!;
+    public virtual ServiceProvider ProviderKeyNavigation { get; set; } = null!;
 }

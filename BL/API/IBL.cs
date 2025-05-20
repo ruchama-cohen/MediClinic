@@ -10,5 +10,6 @@ namespace BLL.API
     {
         public IAuthService AuthService { get; set; }
         public IPatientService PatientService { get; set; }
+        public IAppointmentService AppointmentService { get; set; }
     }
 }

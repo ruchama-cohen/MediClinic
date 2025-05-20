@@ -5,7 +5,9 @@ namespace DAL.Models;
 
 public partial class Patient
 {
-    public int PatientId { get; set; }
+    public int PatientKey { get; set; }
+
+    public string PatientId { get; set; } = null!;
 
     public string PatientName { get; set; } = null!;
 

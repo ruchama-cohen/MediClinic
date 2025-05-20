@@ -26,7 +26,7 @@ namespace DAL.Services
             await _context.SaveChangesAsync();
         }
 
-       
+
 
         public async Task<bool> DeleteServiceProvider(int providerId)
         {
@@ -75,6 +75,19 @@ namespace DAL.Services
                 .ToListAsync();
 
             return serviceProviders;
+        }
+
+        public Task<List<ClinicService>?> GetClinicServiceByServiceID(int ServiceId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<string> GetIdProvideByName(string name)
+        {
+            var serviceProvider = await _context.ServiceProviders
+                .FirstOrDefaultAsync(sp => sp.Name == name);
+
+            return serviceProvider.ProviderId;
         }
 
     }

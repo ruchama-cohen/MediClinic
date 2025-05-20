@@ -9,9 +9,9 @@ public partial class Appointment
 
     public int SlotId { get; set; }
 
-    public int PatientId { get; set; }
+    public int PatientKey { get; set; }
 
-    public virtual Patient Patient { get; set; } = null!;
+    public virtual Patient PatientKeyNavigation { get; set; } = null!;
 
     public virtual AppointmentsSlot Slot { get; set; } = null!;
 }

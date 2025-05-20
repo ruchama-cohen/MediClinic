@@ -61,7 +61,7 @@ namespace DAL.Services
                 .Where(a => a.Provider != null && a.Provider.ServiceId == serviceType)
                 .ToListAsync();
         }
-        public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByServiceProviderIDAndCity(int serviceProviderID, string cityName)
+        public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByServiceProviderIDAndCity(string serviceProviderID, string cityName)
         {
             return await _context.AppointmentsSlots
                 .Where(a => a.Provider != null &&
@@ -70,6 +70,23 @@ namespace DAL.Services
                             a.Branch.Address != null &&
                             a.Branch.Address.City == cityName)
                 .ToListAsync();
+        }
+
+        public async Task<List<Appointment>> GetAppointmentsByDoctorAndClinicAsync(string doctorName, string clinicName = null)
+        {
+            var query = _context.Appointments.AsQueryable();
+
+            // מסננים לפי שם הרופא
+            query = query.Where(a => a.DoctorName == doctorName);
+
+            // אם נבחרה מרפאה, מסננים גם לפי המרפאה
+            if (!string.IsNullOrEmpty(clinicName))
+            {
+                query = query.Where(a => a.ClinicName == clinicName);
+            }
+
+            var appointments = await query.ToListAsync();
+            return appointments;
         }
 
         public async Task<List<AppointmentsSlot>?> GetAppointmentsSlotsByServiceProviderID(int serviceProviderID)

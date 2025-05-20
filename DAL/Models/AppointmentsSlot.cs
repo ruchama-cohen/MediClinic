@@ -7,7 +7,7 @@ public partial class AppointmentsSlot
 {
     public int SlotId { get; set; }
 
-    public int ProviderId { get; set; }
+    public int ProviderKey { get; set; }
 
     public DateOnly SlotDate { get; set; }
 
@@ -19,9 +19,9 @@ public partial class AppointmentsSlot
 
     public bool IsBooked { get; set; }
 
-    public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+    public virtual Appointment? Appointment { get; set; }
 
     public virtual Branch Branch { get; set; } = null!;
 
-    public virtual ServiceProvider Provider { get; set; } = null!;
+    public virtual ServiceProvider ProviderKeyNavigation { get; set; } = null!;
 }

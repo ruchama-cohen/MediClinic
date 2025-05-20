@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Services
 {
-    public class WorkHourManagement: IWorkHourManagement
+    public class WorkHourManagement : IWorkHourManagement
     {
         private readonly DB_Manager _context;
 
@@ -35,7 +35,7 @@ namespace DAL.Services
             return true;
         }
 
- 
+
         public async Task<bool> UpdateWorkHourDetails(WorkHour workHour)
         {
             var workHourN = await _context.WorkHours.FindAsync(workHour.WorkHourId);
@@ -49,6 +49,6 @@ namespace DAL.Services
             return true;
         }
 
-       
+
     }
 }
