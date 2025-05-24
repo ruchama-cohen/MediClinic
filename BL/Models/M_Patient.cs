@@ -8,6 +8,8 @@ namespace BLL.Models
 {
     public class M_Patient
     {
+        public int PatientKey { get; set; }
+        public string PatientId { get; set; } = null!;
         public string PatientName { get; set; } = null!;
         public string Email { get; set; } = null!;
         public string Phone { get; set; } = null!;

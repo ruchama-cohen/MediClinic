@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DAL.API;
-using DAL.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Services
