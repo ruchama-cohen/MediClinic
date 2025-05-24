@@ -39,11 +39,11 @@ namespace DAL.Services
             return false;
         }
 
-        public async Task<string?> GetCityById(int id)
+        public async Task<string?> GetCityNameById(int id)
         {
             return await _context.Addresses
                 .Where(x => x.AddressId == id)
-                .Select(x => x.City)
+                .Select(x => x.City.Name)
                 .FirstOrDefaultAsync();
         }
 

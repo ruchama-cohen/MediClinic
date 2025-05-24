@@ -11,6 +11,6 @@ namespace DAL.API
     {
         Task<bool> DeleteAppointment(int id);
         Task AddAppointment(Appointment appointment);
-        Task<List<Appointment>> GetAppointmentsByPatientIdAsync(string patientId);
+        Task<List<Appointment>> GetAppointmentsByPatientIdAsync(int patientKey);
     }
 }

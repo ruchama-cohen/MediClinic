@@ -13,8 +13,8 @@ namespace DAL.API
         Task<bool> UpdateServiceProviderDetails(ServiceProvider serviceProvider);
         Task<bool> DeleteServiceProvider(int providerId);
         Task<bool> UpdateServiceProvidersAvailability(int providerId);
-        Task<List<ClinicService>?> GetClinicServiceByServiceID(int ServiceId);
-        Task<string> GetIdProvideByName(string name);
+        Task<List<ServiceProvider>> GetAllServiceProvidersByServiceId(int serviceId);
+        Task<string> GetProviderIDByName(string name);
 
     }
 }

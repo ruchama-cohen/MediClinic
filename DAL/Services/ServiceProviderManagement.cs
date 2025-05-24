@@ -58,37 +58,33 @@ namespace DAL.Services
             return true; // Update successful
         }
 
-        public async Task<bool> UpdateServiceProvidersAvailability(int providerId)
+        public async Task<bool> UpdateServiceProvidersAvailability(int providerKey)
         {
-            var serviceProvider = await _context.ServiceProviders.FindAsync(providerId);
+            var serviceProvider = await _context.ServiceProviders.FindAsync(providerKey);
             if (serviceProvider == null)
                 return false;
             serviceProvider.IsActive = !serviceProvider.IsActive;
             return true;
 
         }
-        public async Task<List<ServiceProvider>> GetServiceProvidersByServiceIdWithDetails(int serviceId)
+        public async Task<List<ServiceProvider>> GetAllServiceProvidersByServiceId(int serviceId)
         {
             var serviceProviders = await _context.ServiceProviders
                 .Where(sp => sp.ServiceId == serviceId)
-                .Include(sp => sp.Service) // Load related ClinicService details
                 .ToListAsync();
 
             return serviceProviders;
         }
 
-        public Task<List<ClinicService>?> GetClinicServiceByServiceID(int ServiceId)
-        {
-            throw new NotImplementedException();
-        }
+   
+      
 
-        public async Task<string> GetIdProvideByName(string name)
+        public async  Task<string> GetProviderIDByName(string name)
         {
             var serviceProvider = await _context.ServiceProviders
-                .FirstOrDefaultAsync(sp => sp.Name == name);
+                           .FirstOrDefaultAsync(sp => sp.Name == name);
 
             return serviceProvider.ProviderId;
         }
-
     }
 }

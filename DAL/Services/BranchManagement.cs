@@ -43,18 +43,15 @@ namespace DAL.Services
         public async Task<List<Branch>> GetBranchesByCity(string city)
         {
             return await _context.Branches
-                .Where(b => b.Address.City == city)
+                .Where(b => b.Address.City.Name.Equals(city))
                 .ToListAsync();
         }
 
-        public async Task<List<Branch>> GetBranchesByDoctor(string doctorName)
+        public async Task<List<Branch>> GetBranchesByDoctor(int doctorKey)
         {
             return await _context.Branches
-        .Include(b => b.BranchToServiceProviders)
-            .ThenInclude(btsp => btsp.ServicProvider)
-        .Where(b => b.BranchToServiceProviders
-            .Any(btsp => btsp.ServicProvider.Name.Equals(doctorName, StringComparison.OrdinalIgnoreCase)))
-        .ToListAsync();
+                  .Where(b => b.ServiceProviders.Any(sp => sp.ProviderKey== doctorKey))
+                  .ToListAsync();
 
         }
 

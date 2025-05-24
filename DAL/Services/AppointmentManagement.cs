@@ -58,10 +58,10 @@ namespace DAL.Services
         }
 
 
-        public async Task<List<Appointment>> GetAppointmentsByPatientIdAsync(string patientId)
+        public async Task<List<Appointment>> GetAppointmentsByPatientIdAsync(int patientKey)
         {
             return await _context.Appointments
-                .Where(a => a.PatientKeyNavigation.PatientId == patientId)
+                .Where(a => a.PatientKeyNavigation.PatientKey== patientKey)
                 .Include(a => a.Slot)
                     .ThenInclude(s => s.Branch)
                 .Include(a => a.Slot)

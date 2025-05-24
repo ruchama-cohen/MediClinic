@@ -42,19 +42,22 @@ namespace DAL.Services
             return await _context.Patients.ToListAsync();
         }
 
-        public async Task<string> GetCityByID(int id)
+
+        public async Task<string?> GetCityByID(int id)
         {
             return await _context.Patients
-                .Where(x => x.PatientId == id)
-                .Select(x => x.Address.City)
+                .Where(x => x.PatientKey == id && x.Address != null)
+                .Select(x => x.Address.City.Name)
                 .FirstOrDefaultAsync();
         }
 
+        
         public async Task<Patient> GetPatientById(int id)
         {
-            return await _context.Patients.FirstOrDefaultAsync(p => p.PatientId == id);
+            return await _context.Patients.FirstOrDefaultAsync(p => p.PatientKey == id);
         }
 
+        
 
         public async Task<bool> UpdatePatient(Patient patient)
         {

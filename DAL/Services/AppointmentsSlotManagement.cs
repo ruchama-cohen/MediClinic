@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using DAL.API;
 using DAL.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DAL.Services
 {
@@ -41,57 +42,56 @@ namespace DAL.Services
 
 
 
-        public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByCityAndServiceName(int serviceId, string cityName)
+        public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByCityAndServiceName(int serviceId, int cityID)
         {
             return await _context.AppointmentsSlots
-                .Where(a => a.Provider != null &&
-                            a.Provider.ServiceId == serviceId &&
+                .Where(a =>
+                    a.ProviderKeyNavigation != null &&
+                    a.ProviderKeyNavigation.ServiceId == serviceId &&
+                    a.Branch != null &&
+                    a.Branch.Address != null &&
+                    a.Branch.Address.City != null &&
+                    a.Branch.Address.City.CityId == cityID)
+                .ToListAsync();
+        }
+
+
+
+
+
+        public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByServiceType(int serviceType)
+        {
+            return await _context.AppointmentsSlots
+                .Where(a => a.ProviderKeyNavigation != null && a.ProviderKeyNavigation.ServiceId == serviceType)
+                .ToListAsync();
+        }
+        public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByServiceProviderIDAndCity(int serviceProviderKey, int cityID)
+        {
+            return await _context.AppointmentsSlots
+                .Where(a => a.ProviderKeyNavigation != null &&
+                            a.ProviderKeyNavigation.ProviderKey== serviceProviderKey &&
                             a.Branch != null &&
                             a.Branch.Address != null &&
-                            a.Branch.Address.City == cityName)
+                            a.Branch.Address.City.CityId == cityID)
                 .ToListAsync();
         }
 
-
-
-
-        public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByServiceName(int serviceType)
+        public async Task<List<AppointmentsSlot>> GetAppointmentsByServiceProviderIDAndBranchID(int serviceProviderKey, int branchID )
         {
             return await _context.AppointmentsSlots
-                .Where(a => a.Provider != null && a.Provider.ServiceId == serviceType)
-                .ToListAsync();
-        }
-        public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByServiceProviderIDAndCity(string serviceProviderID, string cityName)
-        {
-            return await _context.AppointmentsSlots
-                .Where(a => a.Provider != null &&
-                            a.Provider.ProviderId == serviceProviderID &&
+            .Where(a => a.ProviderKeyNavigation != null &&
+                            a.ProviderKeyNavigation.ProviderKey==serviceProviderKey &&
                             a.Branch != null &&
-                            a.Branch.Address != null &&
-                            a.Branch.Address.City == cityName)
+                             a.Branch.BranchId == branchID)
                 .ToListAsync();
         }
 
-        public async Task<List<Appointment>> GetAppointmentsByDoctorAndClinicAsync(string doctorName, string clinicName = null)
+
+
+
+        public async Task<List<AppointmentsSlot>?> GetAppointmentsSlotsByServiceProviderID(int serviceProviderKey)
         {
-            var query = _context.Appointments.AsQueryable();
-
-            // מסננים לפי שם הרופא
-            query = query.Where(a => a.DoctorName == doctorName);
-
-            // אם נבחרה מרפאה, מסננים גם לפי המרפאה
-            if (!string.IsNullOrEmpty(clinicName))
-            {
-                query = query.Where(a => a.ClinicName == clinicName);
-            }
-
-            var appointments = await query.ToListAsync();
-            return appointments;
-        }
-
-        public async Task<List<AppointmentsSlot>?> GetAppointmentsSlotsByServiceProviderID(int serviceProviderID)
-        {
-            return await _context.AppointmentsSlots.Where(a => a.Provider != null && a.Provider.ProviderId == serviceProviderID).ToListAsync();
+            return await _context.AppointmentsSlots.Where(a => a.ProviderKeyNavigation != null && a.ProviderKeyNavigation.ProviderKey==serviceProviderKey).ToListAsync();
         }
 
         public async Task<bool> UpdateAppointmentSlotDetails(AppointmentsSlot updatedAppointmentsSlot)
@@ -106,15 +106,36 @@ namespace DAL.Services
         }
 
 
-        public async Task<bool> UpdateQueueAvailability(int appointmentId)
+        public async Task<bool> UpdateQueueAvailability(int appointmentId, bool isBooked)
         {
             var appointmentsSlot = await _context.AppointmentsSlots.FindAsync(appointmentId);
             if (appointmentsSlot == null) return false;
-            _context.Entry(appointmentsSlot).CurrentValues.SetValues(updatedAppointmentsSlot);
+
+            appointmentsSlot.IsBooked = isBooked;
             await _context.SaveChangesAsync();
             return true;
-
         }
+
+        public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByCityAndServiceName(int serviceId, string cityName)
+        {
+            return await _context.AppointmentsSlots
+                .Where(a => a.ProviderKeyNavigation != null &&
+                            a.ProviderKeyNavigation.ServiceId == serviceId&&
+                            a.Branch != null &&
+                            a.Branch.Address != null &&
+                            a.Branch.Address.City.Name == cityName)
+                .ToListAsync();
+        }
+
+        public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByServiceProviderIDAndCity(int serviceProviderKey, string cityName)
+        {
+           return await _context.AppointmentsSlots.Where(a => a.ProviderKeyNavigation != null &&
+                            a.ProviderKeyNavigation.ProviderKey == serviceProviderKey &&
+                            a.Branch != null &&
+                            a.Branch.Address != null &&
+                            a.Branch.Address.City.Name == cityName).ToListAsync();
+        }
+
 
     }
 }

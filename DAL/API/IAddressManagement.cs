@@ -12,7 +12,7 @@ namespace DAL.API
         Task AddAddress(Address address);
         Task<Address?> SearchAddress(Address address);
 
-        Task<string?> GetCityById(int id);
+        Task<string?> GetCityNameById(int id);
         Task<bool> DeleteAddress(int id);
 
     }

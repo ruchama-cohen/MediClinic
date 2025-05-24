@@ -17,7 +17,7 @@ namespace DAL.API
 
         Task<List<Branch>> GetBranchesByCity(string city);
 
-        Task<List<Branch>> GetBranchesByDoctor(string doctorName);
+        Task<List<Branch>> GetBranchesByDoctor(int doctorKey);
 
         Task<List<Branch>> GetAllBranches();
     }
