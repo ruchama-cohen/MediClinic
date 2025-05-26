@@ -15,9 +15,9 @@ namespace DAL.API
 
         Task AddBranch(Branch branch);
 
-        Task<List<Branch>> GetBranchesByCity(string city);
+        Task<List<Branch>> GetBranchesByCityID(int cityID);
 
-        Task<List<Branch>> GetBranchesByDoctor(int doctorKey);
+        Task<List<Branch>> GetBranchesByServiceProviderKey(int doctorKey);
 
         Task<List<Branch>> GetAllBranches();
     }

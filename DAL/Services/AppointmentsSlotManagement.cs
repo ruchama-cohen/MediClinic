@@ -12,6 +12,9 @@ namespace DAL.Services
 {
     public class AppointmentsSlotManagement : IAppointmentsSlotManagement
     {
+
+        
+
         private readonly DB_Manager _context;
 
         public AppointmentsSlotManagement(DB_Manager context)
@@ -39,10 +42,6 @@ namespace DAL.Services
             return true; // Slot successfully deleted
         }
 
-
-
-
-
         public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByCityAndServiceName(int serviceId, int cityID)
         {
             return await _context.AppointmentsSlots
@@ -56,17 +55,13 @@ namespace DAL.Services
                 .ToListAsync();
         }
 
-
-
-
-
         public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByServiceType(int serviceType)
         {
             return await _context.AppointmentsSlots
                 .Where(a => a.ProviderKeyNavigation != null && a.ProviderKeyNavigation.ServiceId == serviceType)
                 .ToListAsync();
         }
-        public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByServiceProviderIDAndCity(int serviceProviderKey, int cityID)
+        public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByServiceProviderIDAndCityID(int serviceProviderKey, int cityID)
         {
             return await _context.AppointmentsSlots
                 .Where(a => a.ProviderKeyNavigation != null &&
@@ -76,7 +71,7 @@ namespace DAL.Services
                             a.Branch.Address.City.CityId == cityID)
                 .ToListAsync();
         }
-
+  
         public async Task<List<AppointmentsSlot>> GetAppointmentsByServiceProviderIDAndBranchID(int serviceProviderKey, int branchID )
         {
             return await _context.AppointmentsSlots
@@ -86,9 +81,6 @@ namespace DAL.Services
                              a.Branch.BranchId == branchID)
                 .ToListAsync();
         }
-
-
-
 
         public async Task<List<AppointmentsSlot>?> GetAppointmentsSlotsByServiceProviderID(int serviceProviderKey)
         {
@@ -117,40 +109,6 @@ namespace DAL.Services
             return true;
         }
 
-        public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByCityAndServiceName(int serviceId, string cityName)
-        {
-            return await _context.AppointmentsSlots
-                .Where(a => a.ProviderKeyNavigation != null &&
-                            a.ProviderKeyNavigation.ServiceId == serviceId&&
-                            a.Branch != null &&
-                            a.Branch.Address != null &&
-                            a.Branch.Address.City.Name == cityName)
-                .ToListAsync();
-        }
-
-        public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByServiceProviderIDAndCity(int serviceProviderKey, string cityName)
-        {
-           return await _context.AppointmentsSlots.Where(a => a.ProviderKeyNavigation != null &&
-                            a.ProviderKeyNavigation.ProviderKey == serviceProviderKey &&
-                            a.Branch != null &&
-                            a.Branch.Address != null &&
-                            a.Branch.Address.City.Name == cityName).ToListAsync();
-        }
-
-        public async Task<AppointmentsSlot?> GetSlotByIdAsync(int slotId)
-        {
-            return await _context.AppointmentsSlots.FindAsync(slotId);
-        }
-
-
-        public async Task<bool> AnySlotExistsAsync(int providerKey, DateOnly date, TimeOnly startTime, int branchId)
-        {
-            return await _context.AppointmentsSlots.AnyAsync(s =>
-                s.ProviderKey == providerKey &&
-                s.SlotDate == date &&
-                s.SlotStart == startTime &&
-                s.BranchId == branchId);
-        }
 
     }
 }

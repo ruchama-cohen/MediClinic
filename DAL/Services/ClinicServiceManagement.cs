@@ -25,10 +25,10 @@ namespace DAL.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> DeleteClinicService(string serviceName)
+        public async Task<bool> DeleteClinicService(int serviceID)
         {
             var clinicService = await _context.ClinicServices
-                .FirstOrDefaultAsync(s => s.ServiceName == serviceName);
+                .FirstOrDefaultAsync(s => s.ServiceId == serviceID);
 
             if (clinicService != null)
             {

@@ -76,10 +76,7 @@ namespace DAL.Services
             return serviceProviders;
         }
 
-   
-      
-
-        public async  Task<int> GetProviderIDByName(string name)
+        public async  Task<string> GetProviderIDByName(string name)
         {
             var serviceProvider = await _context.ServiceProviders
                            .FirstOrDefaultAsync(sp => sp.Name == name);

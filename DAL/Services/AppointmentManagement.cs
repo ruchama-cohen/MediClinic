@@ -18,20 +18,8 @@ namespace DAL.Services
         {
             _context = context;
         }
-
-        public async Task<bool> TryAddAppointmentSafe(Appointment appointment)
-        {
-            try
-            {
-                await _context.Appointments.AddAsync(appointment);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            catch (DbUpdateException ex)
-            {
-                return false;
-            }
-        }
+   
+  
 
         public async Task AddAppointment(Appointment appointment)
         {
