@@ -10,7 +10,7 @@ namespace DAL.API
     public interface IClinicServiceManagement
     {
         Task AddClinicService(ClinicService clinicService);
-        Task<bool> DeleteClinicService(string serviceName);
+        Task<bool> DeleteClinicService(int serviceID);
 
     }
 }
