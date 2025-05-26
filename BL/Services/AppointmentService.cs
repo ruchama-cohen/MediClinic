@@ -1,13 +1,6 @@
 ﻿using BLL.API;
-using DAL.Models;
 using DAL.API;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DAL.Services;
-using Microsoft.EntityFrameworkCore;
+using DAL.Models;
 
 namespace BLL.Services
 {
@@ -34,17 +27,17 @@ namespace BLL.Services
                 throw new ArgumentException("Provider name cannot be null or empty.");
             }
             var providerId = await _serviceProviderManagementDal.GetProviderIDByName(doctorName);
-          
+
 
             var appointments = await _appointmentsSlotManagementDal.GetAppointmentsSlotsByServiceProviderID(providerId);
 
-      
+
             if (appointments == null || appointments.Count == 0)
             {
                 throw new InvalidOperationException("No appointments found for this service provider.");
             }
 
-       
+
             return appointments;
         }
 
@@ -59,30 +52,30 @@ namespace BLL.Services
             }
             var providerId = await _serviceProviderManagementDal.GetProviderIDByName(doctorName);
             var allSlots = await _appointmentsSlotManagementDal.GetAppointmentSlotByCityAndServiceName(providerId, cityName);
-                if (allSlots == null || allSlots.Count == 0)
-                {
-                    throw new InvalidOperationException("No appointments found for this service provider.");
-                }
+            if (allSlots == null || allSlots.Count == 0)
+            {
+                throw new InvalidOperationException("No appointments found for this service provider.");
+            }
 
-                return allSlots;
+            return allSlots;
         }
 
 
         //חיפוש תור לפי מקצוע
         public async Task<List<AppointmentsSlot>> GetAvailableSlotsByServiceAsync(int serviceId)
         {
-                var allSlots = await _appointmentsSlotManagementDal.GetAppointmentSlotByServiceType(serviceId);
+            var allSlots = await _appointmentsSlotManagementDal.GetAppointmentSlotByServiceType(serviceId);
 
-                if (allSlots == null || allSlots.Count == 0)
-                {
-                    throw new InvalidOperationException("No appointments found for this service provider.");
-                }
+            if (allSlots == null || allSlots.Count == 0)
+            {
+                throw new InvalidOperationException("No appointments found for this service provider.");
+            }
 
-                return allSlots;
+            return allSlots;
         }
 
 
-      
+
         // ביטול תור לפי מזהה
         public async Task CancelAppointmentAsync(int appointmentId)
         {
@@ -177,7 +170,7 @@ namespace BLL.Services
 
             // 7. שמירת השינויים בבסיס הנתונים
             //לבדוק מה לעשות כאילו איפה  הכי נכון לשמור את הנתונים
-          //  await _repository.SaveChangesAsync();
+            //  await _repository.SaveChangesAsync();
 
             return true;
         }
