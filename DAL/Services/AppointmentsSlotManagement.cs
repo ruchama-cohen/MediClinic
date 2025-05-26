@@ -109,6 +109,21 @@ namespace DAL.Services
             return true;
         }
 
+       
+        public async Task<AppointmentsSlot?> GetSlotByIdAsync(int slotId)
+        {
+            return await _context.AppointmentsSlots
+                .FirstOrDefaultAsync(a => a.SlotId == slotId);
+        }
 
+        public Task<bool> AnySlotExistsAsync(int providerKey, DateOnly date, TimeOnly startTime, int branchId)
+        {
+            return _context.AppointmentsSlots
+                .AnyAsync(a => a.ProviderKeyNavigation != null &&
+                               a.ProviderKeyNavigation.ProviderKey == providerKey &&
+                               a.SlotDate == date &&
+                               a.SlotStart == startTime &&
+                               a.BranchId == branchId); 
+        }
     }
 }

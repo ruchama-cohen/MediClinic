@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using DAL.Models;
 namespace BLL.Models
 {
-    public class M_Patient
+    public class PatientModel
     {
         public int PatientKey { get; set; }
         public string PatientId { get; set; } = null!;
@@ -15,6 +15,6 @@ namespace BLL.Models
         public string Phone { get; set; } = null!;
         public string PatientPassword { get; set; } = null!;
 
-        public int AddressId { get; set; }
+        public  Address address{ get; set; }
     }
 }

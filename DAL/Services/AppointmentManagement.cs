@@ -18,17 +18,13 @@ namespace DAL.Services
         {
             _context = context;
         }
-   
-  
-
+     
         public async Task AddAppointment(Appointment appointment)
         {
             await _context.Appointments.AddAsync(appointment);
 
             await _context.SaveChangesAsync();
         }
-
-
         public async Task<bool> DeleteAppointment(int id)
         {
             var appointment = await _context.Appointments
@@ -44,7 +40,6 @@ namespace DAL.Services
             }
             return false;
         }
-
 
         public async Task<List<Appointment>> GetAppointmentsByPatientIdAsync(int patientKey)
         {

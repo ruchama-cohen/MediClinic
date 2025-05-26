@@ -76,7 +76,7 @@ namespace DAL.Services
             return serviceProviders;
         }
 
-        public async  Task<string> GetProviderIDByName(string name)
+        public async  Task<int> GetProviderKeyByName(string name)
         {
             var serviceProvider = await _context.ServiceProviders
                            .FirstOrDefaultAsync(sp => sp.Name == name);
@@ -91,5 +91,7 @@ namespace DAL.Services
                 .Include(p => p.WorkHours)
                 .FirstOrDefaultAsync(p => p.ProviderKey == providerKey);
         }
+
+       
     }
 }

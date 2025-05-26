@@ -39,7 +39,6 @@ namespace DAL.Services
             return await _context.Branches.ToListAsync();
         }
 
-
         public async Task<List<Branch>> GetBranchesByCityID(int cityID)
         {
             return await _context.Branches

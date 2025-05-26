@@ -57,19 +57,19 @@ namespace DAL.Services
             return await _context.Patients.FirstOrDefaultAsync(p => p.PatientKey == id);
         }
 
-        
 
-        public async Task<bool> UpdatePatient(Patient patient)
+
+        public async Task<bool> UpdatePatient(Patient updatedPatient)
         {
-            var patientN = await _context.Patients.FindAsync(patient.PatientId);
-
-            if (patientN == null)
+            var patientInDb = await _context.Patients.FindAsync(updatedPatient.PatientId);
+            if (patientInDb == null)
                 return false;
 
-            _context.Entry(patientN).CurrentValues.SetValues(patient);
+            _context.Entry(patientInDb).CurrentValues.SetValues(updatedPatient);
             await _context.SaveChangesAsync();
             return true;
         }
+
 
         public async Task<int> GetPatientIDByName(string name)
         {
@@ -79,5 +79,6 @@ namespace DAL.Services
             return Patient.PatientKey;
         }
 
+       
     }
 }

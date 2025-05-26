@@ -9,10 +9,9 @@ namespace DAL.API
 {
     public interface IAddressManagement
     {
-        Task AddAddress(Address address);
-        Task<Address?> SearchAddress(Address address);
+        Task<int> AddAddress(Address address);
 
-        Task<string?> GetCityNameById(int id);
+        Task<Address?> GetAddressById(int id);
         Task<bool> DeleteAddress(int id);
 
     }

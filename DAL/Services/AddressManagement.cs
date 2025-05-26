@@ -19,15 +19,13 @@ namespace DAL.Services
         {
             _context = context;
         }
-        public async Task AddAddress(Address address)
+        public async Task<int> AddAddress(Address address)
         {
             await _context.Addresses.AddAsync(address);
 
             await _context.SaveChangesAsync();
+            return address.AddressId; // Return the ID of the newly added address
         }
-
-
-
         public async Task<bool> DeleteAddress(int id)
         {
             var address = await _context.Addresses.FindAsync(id);
@@ -47,15 +45,14 @@ namespace DAL.Services
                 .Select(x => x.City.Name)
                 .FirstOrDefaultAsync();
         }
-
-
-        public async Task<Address?> SearchAddress(Address address)
+        public async Task<Address?> GetAddressById(int id)
         {
-            return await _context.Addresses.FirstOrDefaultAsync(a =>
-                a.City == address.City &&
-                a.Street == address.Street &&
-                a.HouseNumber == address.HouseNumber &&
-                a.PostalCode == address.PostalCode);
+            return await _context.Addresses
+                .Where(x => x.AddressId == id)
+               
+                .FirstOrDefaultAsync();
         }
+
+     
     }
 }
