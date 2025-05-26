@@ -9,7 +9,13 @@ namespace BLL.API
 {
     public interface IAppointmentService
     {
-        Task<List<Appointment>> GetAppointmentsByProviderNameAsync(string doctorName, string clinicName = null);
+        Task<List<AppointmentsSlot>> GetAppointmentsByProviderNameAsync(string doctorName);
+        Task<List<AppointmentsSlot>> GetAvailableSlotsByProviderAndCityAsync(string doctorName, string cityName);
+        Task<List<AppointmentsSlot>> GetAvailableSlotsByServiceAsync(int serviceId);
+        Task CancelAppointmentAsync(int appointmentId);
+        Task<List<Appointment>> GetAppointmentsByUserAsync(string patientName);
+        Task<bool> BookAppointmentAsync(int slotId, Appointment appointment);
+        Task<bool> GenerateSlotsForProviderAsync(int providerKey, DateOnly startDate, DateOnly endDate);
 
     }
 }

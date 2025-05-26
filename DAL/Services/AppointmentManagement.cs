@@ -69,8 +69,5 @@ namespace DAL.Services
                 .ToListAsync();
         }
 
-
-
-
     }
 }

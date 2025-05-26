@@ -7,7 +7,7 @@ using BLL.API;
 
 namespace BLL.Services
 {
-    internal class PatientService:IPatientService
+    public class PatientService:IPatientService
     {
         
         public async Task<bool> ChangePassword(string oldPassword, string newPassword)

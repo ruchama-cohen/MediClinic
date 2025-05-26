@@ -21,6 +21,7 @@ namespace DAL.Services
         public async Task AddAppointmentSlot(AppointmentsSlot appointmentSlot)
         {
             _context.AppointmentsSlots.Add(appointmentSlot);
+            await _context.SaveChangesAsync();
 
         }
 
@@ -136,6 +137,20 @@ namespace DAL.Services
                             a.Branch.Address.City.Name == cityName).ToListAsync();
         }
 
+        public async Task<AppointmentsSlot?> GetSlotByIdAsync(int slotId)
+        {
+            return await _context.AppointmentsSlots.FindAsync(slotId);
+        }
+
+
+        public async Task<bool> AnySlotExistsAsync(int providerKey, DateOnly date, TimeOnly startTime, int branchId)
+        {
+            return await _context.AppointmentsSlots.AnyAsync(s =>
+                s.ProviderKey == providerKey &&
+                s.SlotDate == date &&
+                s.SlotStart == startTime &&
+                s.BranchId == branchId);
+        }
 
     }
 }

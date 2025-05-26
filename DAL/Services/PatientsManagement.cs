@@ -71,5 +71,13 @@ namespace DAL.Services
             return true;
         }
 
+        public async Task<int> GetPatientIDByName(string name)
+        {
+            var Patient = await _context.Patients
+                           .FirstOrDefaultAsync(sp => sp.PatientName == name);
+
+            return Patient.PatientKey;
+        }
+
     }
 }

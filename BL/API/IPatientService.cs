@@ -8,7 +8,7 @@ namespace BLL.API
 {
     public interface IPatientService
     {
-        public async Task<bool> ChangePassword(string oldPassword, string newPassword);
+        Task<bool> ChangePassword(string oldPassword, string newPassword);
 
     }
 }

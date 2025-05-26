@@ -1,25 +1,28 @@
-  var builder = WebApplication.CreateBuilder(args);
+using BL;
+using BLL.API;
+using BLL.Services;
+using DAL.Models;
 
-// Add services to the container.
-
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContext<DB_Manager>();
+builder.Services.AddScoped<IBL, BlManager>();
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+app.UseExceptionHandler("/error");
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
+
+
+

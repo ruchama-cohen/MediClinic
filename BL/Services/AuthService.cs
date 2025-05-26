@@ -11,7 +11,7 @@ using DAL.Services;
 
 namespace BLL.Services
 {
-    internal class AuthService : IAuthService
+    public class AuthService : IAuthService
     {
         IPatientsManagement patientsManagement;
         public AuthService(IPatientsManagement _patientsManagement)

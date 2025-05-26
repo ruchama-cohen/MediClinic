@@ -18,6 +18,7 @@ namespace DAL.API
         Task<List<AppointmentsSlot>?> GetAppointmentSlotByServiceType(int serviceName);
         Task<List<AppointmentsSlot>?> GetAppointmentSlotByServiceProviderIDAndCity(int serviceProviderID, string cityName);
         Task<bool> UpdateQueueAvailability(int appointmentId,bool isBooked);
-
+        Task<AppointmentsSlot?> GetSlotByIdAsync(int slotId);
+        Task<bool> AnySlotExistsAsync(int providerKey, DateOnly date, TimeOnly startTime, int branchId);
     }
 }

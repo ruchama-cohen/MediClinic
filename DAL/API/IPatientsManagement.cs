@@ -14,6 +14,7 @@ namespace DAL.API
         Task<Patient> GetPatientById(int id);
         Task<List<Patient>> GetAllPatients();
         Task<string> GetCityByID(int id);
+        Task<int> GetPatientIDByName(string name);
 
     }
 }

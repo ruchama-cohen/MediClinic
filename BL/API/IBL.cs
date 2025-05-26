@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BLL.API
 {
-    internal interface IBL
+    public interface IBL
     {
         public IAuthService AuthService { get; set; }
         public IPatientService PatientService { get; set; }
