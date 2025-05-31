@@ -1,15 +1,19 @@
-﻿namespace WebAPI.Services
+﻿
+using BCrypt.Net;
+using BLL.API;
+
+namespace BLL.Services
 {
     public class PasswordService : IPasswordService
     {
         public string HashPassword(string password)
         {
-            return BCrypt.HashPassword(password, BCrypt.GenerateSalt());
+            return BCrypt.Net.BCrypt.HashPassword(password);
         }
 
         public bool VerifyPassword(string password, string hash)
         {
-            return BCrypt.Verify(password, hash);
+            return BCrypt.Net.BCrypt.Verify(password, hash);
         }
     }
 }

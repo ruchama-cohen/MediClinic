@@ -10,12 +10,13 @@ namespace WebAPI.Controllers
     public class AppointmentsController : ControllerBase
     {
         private readonly IAppointmentService _appointmentService;
-        public AppointmentsController(IBL appointmentService)
+
+        public AppointmentsController(IBL bl) 
         {
-            _appointmentService = _appointmentService;
+            _appointmentService = bl.AppointmentService; 
         }
 
-        //קונטרולר שמקבל שם רופא ומחזיר את התורים הזמינים של אותו רופא
+       
         [HttpGet("byprovider/{doctorName}")]
         public async Task<IActionResult> GetAppointmentsByProviderName(string doctorName)
         {
@@ -29,7 +30,6 @@ namespace WebAPI.Controllers
             return Ok(appointments);
         }
 
-        //קונטרולר שמקבל שם רופא ותורים 
         [HttpGet("byprovidercity")]
         public async Task<IActionResult> GetAvailableSlotsByProviderAndCity([FromQuery] string doctorName, [FromQuery] string cityName)
         {
@@ -40,8 +40,6 @@ namespace WebAPI.Controllers
             return Ok(slots);
         }
 
-
-        //קונטרולר שמקבל 
         [HttpGet("byservice/{serviceId}")]
         public async Task<IActionResult> GetAvailableSlotsByService(int serviceId)
         {
@@ -52,9 +50,6 @@ namespace WebAPI.Controllers
             return Ok(slots);
         }
 
-
-
-        //ביטול תור לפי ID
         [HttpDelete("{appointmentId}")]
         public async Task<IActionResult> CancelAppointment(int appointmentId)
         {
@@ -65,8 +60,6 @@ namespace WebAPI.Controllers
             return NoContent();
         }
 
-
-        //מחזירה תורים של מטופל לפי השם שלו אולי כדאי לשנות?
         [HttpGet("byuser/{patientName}")]
         public async Task<IActionResult> GetAppointmentsByUser(string patientName)
         {
@@ -77,8 +70,6 @@ namespace WebAPI.Controllers
             return Ok(appointments);
         }
 
-
-        //קביעת תור
         [HttpPost("book/{slotId}")]
         public async Task<IActionResult> BookAppointment(int slotId, [FromBody] int appointment)
         {
@@ -92,8 +83,6 @@ namespace WebAPI.Controllers
             return Ok("Appointment booked successfully.");
         }
 
-
-        //אם פעם נרצה להפעיל את זה בעצמנו
         [HttpPost("generateslots")]
         public async Task<IActionResult> GenerateSlotsForProvider([FromQuery] int providerKey, [FromQuery] DateOnly startDate, [FromQuery] DateOnly endDate)
         {

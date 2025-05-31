@@ -7,7 +7,6 @@ using BLL.API;
 using BLL.Models;
 using DAL.API;
 using DAL.Models;
-using DAL.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace BLL.Services
@@ -15,19 +14,19 @@ namespace BLL.Services
     public class PatientService : IPatientService
     {
         private readonly IPatientsManagement _patientManagement;
+        private readonly IAddressManagement _addressManagement;
+        private readonly AddressService _addressService;
 
-        public PatientService(IPatientsManagement patientManagement)
+        public PatientService(IPatientsManagement patientManagement, IAddressManagement addressManagement)
         {
             _patientManagement = patientManagement;
+            _addressManagement = addressManagement;
+            _addressService = new AddressService(patientManagement, addressManagement);
         }
 
         public async Task<bool> ChangePassword(string oldPassword, string newPassword)
         {
-            //after the user insid'
-            //function which return the old one compare it with the old password
-            //if the old password is correct
-            //change in the dall-send object model whith the new password
-            //return true
+            // TODO: implement password change logic
             return false;
         }
 
@@ -37,6 +36,7 @@ namespace BLL.Services
             if (existingPatient == null)
                 return false;
 
+            var addressId = await _addressService.GetOrAddAddressAsync(model.address);
 
             var updatedEntity = new Patient
             {
@@ -46,7 +46,9 @@ namespace BLL.Services
                 Email = model.Email,
                 Phone = model.Phone,
                 PatientPassword = model.PatientPassword,
-                AddressId = model.address.AddressId,
+                AddressId = addressId, 
+                BirthDate = existingPatient.BirthDate, 
+                Gender = existingPatient.Gender, 
                 Address = model.address,
             };
 

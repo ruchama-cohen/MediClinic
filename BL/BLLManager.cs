@@ -3,7 +3,6 @@ using BLL.Services;
 using DAL.API;
 using DAL.Models;
 using DAL.Services;
-using WebAPI.Services;
 
 namespace BL
 {
@@ -29,7 +28,7 @@ namespace BL
             IPasswordService passwordService = new PasswordService();
 
             AuthService = new AuthService(patientsManagementDal, passwordService);
-            PatientService = new PatientService(patientsManagementDal);
+            PatientService = new PatientService(patientsManagementDal, addressManagementDal); // הוספת addressManagementDal
             AppointmentService = new AppointmentService(
                 appointmentManagementDal,
                 appointmentsSlotManagementDal,

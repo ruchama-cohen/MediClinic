@@ -1,7 +1,6 @@
 ﻿using BLL.API;
 using BLL.Models;
 using DAL.API;
-using WebAPI.Services;
 
 namespace BLL.Services
 {
@@ -20,22 +19,20 @@ namespace BLL.Services
         {
             try
             {
-            
                 var patient = await _patientsManagement.GetPatientById(id);
 
                 if (patient == null)
-                    return -1; 
+                    return -1;
 
                 if (string.IsNullOrEmpty(patient.PatientPassword))
-                    return -2; 
+                    return -2;
 
-                
                 if (_passwordService.VerifyPassword(password, patient.PatientPassword))
                 {
                     return patient.PatientKey;
                 }
 
-                return -1; 
+                return -1;
             }
             catch (Exception)
             {

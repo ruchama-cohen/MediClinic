@@ -1,4 +1,4 @@
-﻿namespace WebAPI.Services
+﻿namespace BLL.API  
 {
     public interface IPasswordService
     {
