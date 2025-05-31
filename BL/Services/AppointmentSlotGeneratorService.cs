@@ -44,11 +44,11 @@ namespace BLL.Services
 
                         foreach (var provider in providers)
                         {
-                            bool result = await _appointmentService.GenerateSlotsForProviderAsync(provider.Id, targetDate, targetDate);
+                            bool result = await _appointmentService.GenerateSlotsForProviderAsync(provider.ProviderKey, targetDate, targetDate);
                             if (result)
-                                _logger.LogInformation($"Slots generated for provider {provider.Id} on {targetDate}");
+                                _logger.LogInformation($"Slots generated for provider {provider.ProviderKey} on {targetDate}");
                             else
-                                _logger.LogWarning($"Failed to generate slots for provider {provider.Id} on {targetDate}");
+                                _logger.LogWarning($"Failed to generate slots for provider {provider.ProviderKey} on {targetDate}");
                         }
                     }
                     catch (Exception ex)

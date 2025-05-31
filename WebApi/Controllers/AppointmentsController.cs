@@ -19,30 +19,25 @@ namespace WebAPI.Controllers
         [HttpGet("byprovider/{doctorName}")]
         public async Task<IActionResult> GetAppointmentsByProviderName(string doctorName)
         {
-            try
-            {
-                var appointments = await _appointmentService.GetAppointmentsByProviderNameAsync(doctorName);
-                return Ok(appointments);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            if (string.IsNullOrWhiteSpace(doctorName))
+                return BadRequest("Doctor name is required.");
+
+            var appointments = await _appointmentService.GetAppointmentsByProviderNameAsync(doctorName);
+            if (appointments == null || !appointments.Any())
+                return NotFound($"No appointments found for provider '{doctorName}'.");
+
+            return Ok(appointments);
         }
 
         //קונטרולר שמקבל שם רופא ותורים 
         [HttpGet("byprovidercity")]
         public async Task<IActionResult> GetAvailableSlotsByProviderAndCity([FromQuery] string doctorName, [FromQuery] string cityName)
         {
-            try
-            {
-                var slots = await _appointmentService.GetAvailableSlotsByProviderAndCityAsync(doctorName, cityName);
-                return Ok(slots);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            if (string.IsNullOrWhiteSpace(doctorName) || string.IsNullOrWhiteSpace(cityName))
+                return BadRequest("Doctor name and city name are required.");
+
+            var slots = await _appointmentService.GetAvailableSlotsByProviderAndCityAsync(doctorName, cityName);
+            return Ok(slots);
         }
 
 
@@ -50,31 +45,24 @@ namespace WebAPI.Controllers
         [HttpGet("byservice/{serviceId}")]
         public async Task<IActionResult> GetAvailableSlotsByService(int serviceId)
         {
-            try
-            {
-                var slots = await _appointmentService.GetAvailableSlotsByServiceAsync(serviceId);
-                return Ok(slots);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            if (serviceId <= 0)
+                return BadRequest("Invalid service ID.");
+
+            var slots = await _appointmentService.GetAvailableSlotsByServiceAsync(serviceId);
+            return Ok(slots);
         }
+
 
 
         //ביטול תור לפי ID
         [HttpDelete("{appointmentId}")]
         public async Task<IActionResult> CancelAppointment(int appointmentId)
         {
-            try
-            {
-                await _appointmentService.CancelAppointmentAsync(appointmentId);
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            if (appointmentId <= 0)
+                return BadRequest("Invalid appointment ID.");
+
+            await _appointmentService.CancelAppointmentAsync(appointmentId);
+            return NoContent();
         }
 
 
@@ -82,34 +70,26 @@ namespace WebAPI.Controllers
         [HttpGet("byuser/{patientName}")]
         public async Task<IActionResult> GetAppointmentsByUser(string patientName)
         {
-            try
-            {
-                var appointments = await _appointmentService.GetAppointmentsByUserAsync(patientName);
-                return Ok(appointments);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            if (string.IsNullOrWhiteSpace(patientName))
+                return BadRequest("Patient name is required.");
+
+            var appointments = await _appointmentService.GetAppointmentsByUserAsync(patientName);
+            return Ok(appointments);
         }
 
 
         //קביעת תור
         [HttpPost("book/{slotId}")]
-        public async Task<IActionResult> BookAppointment(int slotId, [FromBody] Appointment appointment)
+        public async Task<IActionResult> BookAppointment(int slotId, [FromBody] int appointment)
         {
-            try
-            {
-                bool success = await _appointmentService.BookAppointmentAsync(slotId, appointment);
-                if (!success)
-                    return Conflict("Slot is already booked or unavailable.");
+            if (slotId <= 0 || appointment <= 0)
+                return BadRequest("Invalid slot ID or appointment data.");
 
-                return Ok("Appointment booked successfully.");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            bool success = await _appointmentService.BookAppointmentAsync(slotId, appointment);
+            if (!success)
+                return Conflict("Slot is already booked or unavailable.");
+
+            return Ok("Appointment booked successfully.");
         }
 
 
@@ -117,18 +97,17 @@ namespace WebAPI.Controllers
         [HttpPost("generateslots")]
         public async Task<IActionResult> GenerateSlotsForProvider([FromQuery] int providerKey, [FromQuery] DateOnly startDate, [FromQuery] DateOnly endDate)
         {
-            try
-            {
-                bool success = await _appointmentService.GenerateSlotsForProviderAsync(providerKey, startDate, endDate);
-                if (!success)
-                    return BadRequest("Failed to generate slots for provider.");
+            if (providerKey <= 0)
+                return BadRequest("Invalid provider key.");
 
-                return Ok("Slots generated successfully.");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            if (startDate > endDate)
+                return BadRequest("Start date must be before end date.");
+
+            bool success = await _appointmentService.GenerateSlotsForProviderAsync(providerKey, startDate, endDate);
+            if (!success)
+                return BadRequest("Failed to generate slots for provider.");
+
+            return Ok("Slots generated successfully.");
         }
     }
 }

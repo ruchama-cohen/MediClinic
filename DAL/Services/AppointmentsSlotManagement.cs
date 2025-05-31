@@ -42,7 +42,7 @@ namespace DAL.Services
             return true; // Slot successfully deleted
         }
 
-        public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByCityAndServiceName(int serviceId, int cityID)
+        public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByCityAndServiceName(int serviceId, string cityName)
         {
             return await _context.AppointmentsSlots
                 .Where(a =>
@@ -51,7 +51,7 @@ namespace DAL.Services
                     a.Branch != null &&
                     a.Branch.Address != null &&
                     a.Branch.Address.City != null &&
-                    a.Branch.Address.City.CityId == cityID)
+                    a.Branch.Address.City.Name == cityName) 
                 .ToListAsync();
         }
 

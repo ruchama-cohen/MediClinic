@@ -16,5 +16,6 @@ namespace DAL.API
         Task<List<ServiceProvider>> GetAllServiceProvidersByServiceId(int serviceId);
         Task<int> GetProviderKeyByName(string name);
         Task<ServiceProvider?> GetProviderWithWorkHoursAsync(int providerKey);
+        Task<List<ServiceProvider>> GetAllAsync();
     }
 }
