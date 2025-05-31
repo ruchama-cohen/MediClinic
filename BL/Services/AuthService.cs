@@ -1,36 +1,64 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using BLL.API;
+﻿using BLL.API;
 using BLL.Models;
 using DAL.API;
-using DAL.Models;
-using DAL.Services;
+using WebAPI.Services;
 
 namespace BLL.Services
 {
     public class AuthService : IAuthService
     {
-        IPatientsManagement patientsManagement;
-        public AuthService(IPatientsManagement _patientsManagement)
+        private readonly IPatientsManagement _patientsManagement;
+        private readonly IPasswordService _passwordService;
+
+        public AuthService(IPatientsManagement patientsManagement, IPasswordService passwordService)
         {
-            patientsManagement = _patientsManagement;
-        }
-        public async Task<int> Login(LogInRequest logInRequest)
-        {
-            Patient patient = await patientsManagement.GetPatientById(logInRequest.UserId);
-            //exist:
-            //function in patientmanagement which compare and check the values
-            //return according to the function return
+            _patientsManagement = patientsManagement;
+            _passwordService = passwordService;
         }
 
-        public Task<bool> SignIn(int id)
+        public async Task<int> Login(int id, string password)
         {
-            //exist:
-            //function in patientmanagement which compare and check the values
-            //return according to the function return
+            try
+            {
+            
+                var patient = await _patientsManagement.GetPatientById(id);
+
+                if (patient == null)
+                    return -1; 
+
+                if (string.IsNullOrEmpty(patient.PatientPassword))
+                    return -2; 
+
+                
+                if (_passwordService.VerifyPassword(password, patient.PatientPassword))
+                {
+                    return patient.PatientKey;
+                }
+
+                return -1; 
+            }
+            catch (Exception)
+            {
+                return -1;
+            }
+        }
+
+        public async Task<bool> SetPasswordForTesting(int patientId, string newPassword)
+        {
+            try
+            {
+                var patient = await _patientsManagement.GetPatientById(patientId);
+                if (patient == null)
+                    return false;
+
+                patient.PatientPassword = _passwordService.HashPassword(newPassword);
+
+                return await _patientsManagement.UpdatePatient(patient);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }

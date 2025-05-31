@@ -1,6 +1,4 @@
-﻿using BCrypt.Net;
-
-namespace WebAPI.Services
+﻿namespace WebAPI.Services
 {
     public class PasswordService : IPasswordService
     {

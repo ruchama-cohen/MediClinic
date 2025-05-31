@@ -1,20 +1,12 @@
-﻿
-using BLL.API;
+﻿using BLL.API;
 using BLL.Services;
-
 using DAL.API;
 using DAL.Models;
 using DAL.Services;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+using WebAPI.Services;
 
 namespace BL
-{ 
+{
     public class BlManager : IBL
     {
         public IAuthService AuthService { get; set; }
@@ -24,6 +16,7 @@ namespace BL
         public BlManager()
         {
             DB_Manager db = new DB_Manager();
+
             IAddressManagement addressManagementDal = new AddressManagement(db);
             IAppointmentManagement appointmentManagementDal = new AppointmentManagement(db);
             IPatientsManagement patientsManagementDal = new PatientsManagement(db);
@@ -33,10 +26,16 @@ namespace BL
             IServiceProviderManagement serviceProviderManagementDal = new ServiceProviderManagement(db);
             IWorkHourManagement workHourManagementDal = new WorkHourManagement(db);
 
-            AppointmentService = new AppointmentService(appointmentManagementDal, appointmentsSlotManagementDal, serviceProviderManagementDal, patientsManagementDal);
+            IPasswordService passwordService = new PasswordService();
+
+            AuthService = new AuthService(patientsManagementDal, passwordService);
+            PatientService = new PatientService(patientsManagementDal);
+            AppointmentService = new AppointmentService(
+                appointmentManagementDal,
+                appointmentsSlotManagementDal,
+                serviceProviderManagementDal,
+                patientsManagementDal
+            );
         }
     }
-}
-
-}
 }

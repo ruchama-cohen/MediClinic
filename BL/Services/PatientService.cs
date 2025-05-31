@@ -12,10 +12,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BLL.Services
 {
-    public class PatientService:IPatientService
+    public class PatientService : IPatientService
     {
+        private readonly IPatientsManagement _patientManagement;
 
-        private readonly PatientsManagement _patientManagement;
+        public PatientService(IPatientsManagement patientManagement)
+        {
+            _patientManagement = patientManagement;
+        }
 
         public async Task<bool> ChangePassword(string oldPassword, string newPassword)
         {
@@ -26,43 +30,27 @@ namespace BLL.Services
             //return true
             return false;
         }
-        
-
-            public PatientService(PatientsManagement patientManagement)
-            {
-            _patientManagement = patientManagement;
-        }
 
         public async Task<bool> UpdatePatient(PatientModel model)
         {
             var existingPatient = await _patientManagement.GetPatientById(model.PatientKey);
             if (existingPatient == null)
                 return false;
-            var addressId = await AddressService.GetOrAddAddressAsync(model.address);
 
-        var updatedEntity = new Patient
+
+            var updatedEntity = new Patient
             {
-
-            PatientKey = model.PatientKey,
-            PatientId = model.PatientId,
-            PatientName = model.PatientName,        
-                Email = model.Email,            
+                PatientKey = model.PatientKey,
+                PatientId = model.PatientId,
+                PatientName = model.PatientName,
+                Email = model.Email,
                 Phone = model.Phone,
-                PatientPassword= model.PatientPassword,
-            AddressId = model.address.AddressId,    
-            Address=model.address,
-
-        };
+                PatientPassword = model.PatientPassword,
+                AddressId = model.address.AddressId,
+                Address = model.address,
+            };
 
             return await _patientManagement.UpdatePatient(updatedEntity);
         }
-       
-        
-
-           
-        }
-
-
-
-
     }
+}
