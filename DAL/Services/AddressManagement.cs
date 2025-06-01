@@ -24,7 +24,7 @@ namespace DAL.Services
             await _context.Addresses.AddAsync(address);
 
             await _context.SaveChangesAsync();
-            return address.AddressId; // Return the ID of the newly added address
+            return address.AddressId; 
         }
         public async Task<bool> DeleteAddress(int id)
         {

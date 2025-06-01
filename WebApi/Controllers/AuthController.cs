@@ -82,7 +82,6 @@ namespace WebAPI.Controllers
                 });
             }
         }
-
         [HttpPost("test-password")]
         public async Task<IActionResult> TestPassword([FromBody] TestPasswordRequest request)
         {
@@ -104,11 +103,11 @@ namespace WebAPI.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-    }
 
-    public class TestPasswordRequest
-    {
-        public string PatientId { get; set; }
-        public string NewPassword { get; set; } = string.Empty;
+        public class TestPasswordRequest
+        {
+            public string PatientId { get; set; }
+            public string NewPassword { get; set; } = string.Empty;
+        }
     }
 }

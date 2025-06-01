@@ -24,11 +24,9 @@ namespace BL
             IClinicServiceManagement clinicServiceManagementDal = new ClinicServiceManagement(db);
             IServiceProviderManagement serviceProviderManagementDal = new ServiceProviderManagement(db);
             IWorkHourManagement workHourManagementDal = new WorkHourManagement(db);
-
             IPasswordService passwordService = new PasswordService();
-
             AuthService = new AuthService(patientsManagementDal, passwordService);
-            PatientService = new PatientService(patientsManagementDal, addressManagementDal); // הוספת addressManagementDal
+            PatientService = new PatientService(patientsManagementDal, addressManagementDal, passwordService);
             AppointmentService = new AppointmentService(
                 appointmentManagementDal,
                 appointmentsSlotManagementDal,

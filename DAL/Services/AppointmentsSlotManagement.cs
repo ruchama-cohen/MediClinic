@@ -39,7 +39,7 @@ namespace DAL.Services
 
             _context.AppointmentsSlots.Remove(appointmentSlot);
             await _context.SaveChangesAsync();
-            return true; // Slot successfully deleted
+            return true; 
         }
 
         public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByCityAndServiceName(int serviceId, string cityName)
@@ -109,10 +109,11 @@ namespace DAL.Services
             return true;
         }
 
-       
+
         public async Task<AppointmentsSlot?> GetSlotByIdAsync(int slotId)
         {
             return await _context.AppointmentsSlots
+                .Include(a => a.ProviderKeyNavigation) 
                 .FirstOrDefaultAsync(a => a.SlotId == slotId);
         }
 

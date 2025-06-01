@@ -59,18 +59,68 @@ namespace DAL.Services
 
         public async Task<Patient> GetPatientById(string id)
         {
-            return await _context.Patients.FirstOrDefaultAsync(p => p.PatientId == id);
+            Console.WriteLine($"GetPatientById called with: '{id}', Length: {id?.Length ?? 0}");
+
+            try
+            {
+                var patient = await _context.Patients.FirstOrDefaultAsync(p => p.PatientId == id);
+                Console.WriteLine($"Query result: {(patient != null ? $"Found patient {patient.PatientName}" : "No patient found")}");
+                var allPatients = await _context.Patients.Take(3).ToListAsync();
+                Console.WriteLine("First 3 patients in DB:");
+                foreach (var p in allPatients)
+                {
+                    Console.WriteLine($"  PatientKey: {p.PatientKey}, PatientId: '{p.PatientId}', Name: {p.PatientName}");
+                }
+
+                return patient;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception in GetPatientById: {ex.Message}");
+                throw;
+            }
         }
 
+       
         public async Task<bool> UpdatePatient(Patient updatedPatient)
         {
-            var patientInDb = await _context.Patients.FindAsync(updatedPatient.PatientId);
-            if (patientInDb == null)
-                return false;
+            Console.WriteLine($"=== UPDATE PATIENT DEBUG ===");
+            Console.WriteLine($"1. UpdatePatient called for PatientKey: {updatedPatient.PatientKey}");
+            Console.WriteLine($"2. PatientId: '{updatedPatient.PatientId}'");
+            Console.WriteLine($"3. PatientName: '{updatedPatient.PatientName}'");
 
-            _context.Entry(patientInDb).CurrentValues.SetValues(updatedPatient);
-            await _context.SaveChangesAsync();
-            return true;
+            try
+            {
+                Console.WriteLine($"4. Finding patient by PatientKey: {updatedPatient.PatientKey}");
+                var patientInDb = await _context.Patients.FindAsync(updatedPatient.PatientKey);
+
+                if (patientInDb == null)
+                {
+                    Console.WriteLine($"5. Patient not found in database");
+                    return false;
+                }
+
+                Console.WriteLine($"6. Found patient in DB: {patientInDb.PatientName}");
+                Console.WriteLine($"7. Updating patient values...");
+
+                _context.Entry(patientInDb).CurrentValues.SetValues(updatedPatient);
+
+                Console.WriteLine($"8. Saving changes...");
+                await _context.SaveChangesAsync();
+
+                Console.WriteLine($"9. Patient updated successfully!");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"10. EXCEPTION in UpdatePatient: {ex.GetType().Name}: {ex.Message}");
+                Console.WriteLine($"11. Stack Trace: {ex.StackTrace}");
+                return false;
+            }
+            finally
+            {
+                Console.WriteLine($"=== END UPDATE PATIENT DEBUG ===");
+            }
         }
 
 

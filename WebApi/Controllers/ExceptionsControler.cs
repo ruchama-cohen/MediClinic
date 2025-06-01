@@ -1,4 +1,4 @@
-﻿using BLL.Exceptions; // שנה מ-MediClinic.Exceptions ל-BLL.Exceptions
+﻿using BLL.Exceptions; 
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,7 +26,6 @@ namespace WebAPI.Controllers
                 _logger.LogError(exceptionDetails.Error, "שגיאה במערכת התורים: {Message}", exceptionDetails.Error.Message);
             }
 
-            // Appointment System Exceptions
             if (exceptionDetails?.Error is AppointmentNotFoundException appointmentNotFound)
             {
                 _logger.LogWarning("תור לא נמצא: {Message}", appointmentNotFound.Message);
@@ -49,10 +48,6 @@ namespace WebAPI.Controllers
                 ));
             }
 
-            // הוסף את שאר החריגים באותה צורה...
-            // (רק הסר את הפניות ל-ErrorCode property שלא קיים)
-
-            // Default Error
             _logger.LogError("שגיאה לא מזוהה: {Message}", exceptionDetails?.Error?.Message ?? "Unknown error");
             return StatusCode(500, CreateProblemDetails(
                 title: "שגיאה במערכת",

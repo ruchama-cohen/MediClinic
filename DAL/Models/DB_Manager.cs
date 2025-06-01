@@ -35,16 +35,76 @@ public partial class DB_Manager : DbContext
 
     public virtual DbSet<WorkHour> WorkHours { get; set; }
 
+    // עדכן את DB_Manager.cs עם לוגים מפורטים
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
         {
-            string relativePath = @"data\DB.mdf";
-            string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, relativePath);
+            Console.WriteLine("=== DATABASE CONNECTION DEBUG ===");
+
+            // מציאת הנתיב הבסיסי של הפרויקט
+            string currentDirectory = Directory.GetCurrentDirectory();
+            Console.WriteLine($"1. Current Directory: {currentDirectory}");
+
+            // חזור אחורה עד שנמצא את תיקיית הפרויקט הראשית (MediClinic)
+            string projectRoot = currentDirectory;
+            int steps = 0;
+
+            while (!Directory.Exists(Path.Combine(projectRoot, "DAL")) &&
+                   Directory.GetParent(projectRoot) != null && steps < 10)
+            {
+                projectRoot = Directory.GetParent(projectRoot).FullName;
+                steps++;
+                Console.WriteLine($"2.{steps} Checking parent: {projectRoot}");
+                Console.WriteLine($"   - DAL folder exists: {Directory.Exists(Path.Combine(projectRoot, "DAL"))}");
+            }
+
+            Console.WriteLine($"3. Final Project Root: {projectRoot}");
+            Console.WriteLine($"4. DAL folder found: {Directory.Exists(Path.Combine(projectRoot, "DAL"))}");
+
+            // בדוק את תוכן התיקיות
+            string dalFolder = Path.Combine(projectRoot, "DAL");
+            if (Directory.Exists(dalFolder))
+            {
+                Console.WriteLine($"5. DAL folder contents:");
+                foreach (var item in Directory.GetFileSystemEntries(dalFolder))
+                {
+                    Console.WriteLine($"   - {Path.GetFileName(item)}");
+                }
+
+                string dataFolder = Path.Combine(dalFolder, "data");
+                Console.WriteLine($"6. Data folder exists: {Directory.Exists(dataFolder)}");
+
+                if (Directory.Exists(dataFolder))
+                {
+                    Console.WriteLine($"7. Data folder contents:");
+                    foreach (var file in Directory.GetFiles(dataFolder))
+                    {
+                        var fileInfo = new FileInfo(file);
+                        Console.WriteLine($"   - {Path.GetFileName(file)} ({fileInfo.Length} bytes)");
+                    }
+                }
+            }
+
+            // נתיב למסד הנתונים
+            string dbPath = Path.Combine(projectRoot, "DAL", "data", "DB.mdf");
+            Console.WriteLine($"8. Database path: {dbPath}");
+            Console.WriteLine($"9. Database file exists: {File.Exists(dbPath)}");
+
+            if (File.Exists(dbPath))
+            {
+                var fileInfo = new FileInfo(dbPath);
+                Console.WriteLine($"10. Database file size: {fileInfo.Length} bytes");
+                Console.WriteLine($"11. Database file last modified: {fileInfo.LastWriteTime}");
+            }
+
             string connectionString = $@"Data Source=(LocalDB)\MSSQLLocalDB;
-                         AttachDbFilename={fullPath};
+                         AttachDbFilename={dbPath};
                          Integrated Security=True;
                          Connect Timeout=30";
+
+            Console.WriteLine($"12. Connection String: {connectionString}");
+            Console.WriteLine("=== END DEBUG ===");
 
             optionsBuilder.UseSqlServer(connectionString);
         }

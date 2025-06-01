@@ -1,4 +1,5 @@
 ﻿using BLL.API;
+using BLL.Exceptions;
 using DAL.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -53,34 +54,93 @@ namespace WebAPI.Controllers
         [HttpDelete("{appointmentId}")]
         public async Task<IActionResult> CancelAppointment(int appointmentId)
         {
-            if (appointmentId <= 0)
-                return BadRequest("Invalid appointment ID.");
+            try
+            {
+                if (appointmentId <= 0)
+                    return BadRequest("Invalid appointment ID.");
 
-            await _appointmentService.CancelAppointmentAsync(appointmentId);
-            return NoContent();
+                await _appointmentService.CancelAppointmentAsync(appointmentId);
+                return Ok(new
+                {
+                    success = true,
+                    message = "Appointment cancelled successfully.",
+                    appointmentId = appointmentId
+                });
+            }
+            catch (AppointmentNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error cancelling appointment." });
+            }
         }
 
-        [HttpGet("byuser/{patientName}")]
-        public async Task<IActionResult> GetAppointmentsByUser(string patientName)
+        [HttpGet("byuser/{PatientId}")]
+        public async Task<IActionResult> GetAppointmentsByUser(string id)
         {
-            if (string.IsNullOrWhiteSpace(patientName))
+            if (string.IsNullOrWhiteSpace(id))
                 return BadRequest("Patient name is required.");
 
-            var appointments = await _appointmentService.GetAppointmentsByUserAsync(patientName);
+            var appointments = await _appointmentService.GetAppointmentsByUserAsync(id);
             return Ok(appointments);
         }
 
         [HttpPost("book/{slotId}")]
-        public async Task<IActionResult> BookAppointment(int slotId, [FromBody] int appointment)
+        public async Task<IActionResult> BookAppointment(int slotId, [FromBody] BookAppointmentRequest request)
         {
-            if (slotId <= 0 || appointment <= 0)
-                return BadRequest("Invalid slot ID or appointment data.");
+            try
+            {
+                if (slotId <= 0)
+                    return BadRequest("Invalid slot ID.");
 
-            bool success = await _appointmentService.BookAppointmentAsync(slotId, appointment);
-            if (!success)
-                return Conflict("Slot is already booked or unavailable.");
+                if (request == null || string.IsNullOrWhiteSpace(request.PatientId))
+                    return BadRequest("Patient ID is required.");
 
-            return Ok("Appointment booked successfully.");
+                bool success = await _appointmentService.BookAppointmentAsync(slotId, request.PatientId);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Appointment booked successfully.",
+                    slotId = slotId,
+                    patientId = request.PatientId
+                });
+            }
+            catch (PatientNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (SlotNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (SlotAlreadyBookedException ex)
+            {
+                return Conflict(new { success = false, message = ex.Message });
+            }
+            catch (TimeConflictException ex)
+            {
+                return Conflict(new { success = false, message = ex.Message });
+            }
+            catch (PastAppointmentException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (DailyLimitExceededException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Internal server error." });
+            }
+        }
+
+        public class BookAppointmentRequest
+        {
+            public string PatientId { get; set; } = string.Empty;
         }
 
         [HttpPost("generateslots")]

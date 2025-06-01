@@ -1,3 +1,5 @@
+// ===== Program.cs המלא והמתוקן =====
+
 using BL;
 using BLL.API;
 using BLL.Services;
@@ -12,8 +14,12 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ===== רישום כל השירותים =====
+
+// רישום DbContext
 builder.Services.AddDbContext<DB_Manager>();
 
+// רישום שירותי DAL
 builder.Services.AddScoped<IPatientsManagement, PatientsManagement>();
 builder.Services.AddScoped<IAppointmentManagement, AppointmentManagement>();
 builder.Services.AddScoped<IAppointmentsSlotManagement, AppointmentsSlotManagement>();
@@ -22,9 +28,8 @@ builder.Services.AddScoped<IAddressManagement, AddressManagement>();
 builder.Services.AddScoped<IBranchManagement, BranchManagement>();
 builder.Services.AddScoped<IClinicServiceManagement, ClinicServiceManagement>();
 builder.Services.AddScoped<IWorkHourManagement, WorkHourManagement>();
-
+builder.Services.AddScoped<IPasswordService, PasswordService>();
 builder.Services.AddScoped<IBL, BlManager>();
-
 builder.Services.AddScoped<IJwtService, JwtService>();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>();
@@ -51,16 +56,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.WriteIndented = true;
+    });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
 var app = builder.Build();
-
 app.UseExceptionHandler("/error");
 
 if (app.Environment.IsDevelopment())

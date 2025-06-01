@@ -33,7 +33,6 @@ namespace DAL.Services
 
             if (appointment != null)
             {
-                appointment.Slot.IsBooked = false;
                 _context.Appointments.Remove(appointment);
                 await _context.SaveChangesAsync();
                 return true;
@@ -50,6 +49,13 @@ namespace DAL.Services
                 .Include(a => a.Slot)
                     .ThenInclude(s => s.ProviderKeyNavigation)
                 .ToListAsync();
+        }
+
+        public async Task<Appointment?> GetAppointmentByIdAsync(int appointmentId)
+        {
+            return await _context.Appointments
+                .Include(a => a.Slot)
+                .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
         }
 
     }

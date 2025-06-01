@@ -44,18 +44,13 @@ namespace DAL.Services
 
         public async Task<bool> UpdateServiceProviderDetails(ServiceProvider serviceProvider)
         {
-            // Find the existing service provider by its primary key (ProviderId)
             var serviceProviderN = await _context.ServiceProviders.FindAsync(serviceProvider.ProviderId);
 
             if (serviceProviderN == null)
-                return false; // If not found, return false
-
-            // Update the tracked entity with the new values
+                return false; 
             _context.Entry(serviceProviderN).CurrentValues.SetValues(serviceProvider);
-
-            // Save changes to the database
             await _context.SaveChangesAsync();
-            return true; // Update successful
+            return true; 
         }
 
         public async Task<bool> UpdateServiceProvidersAvailability(int providerKey)
@@ -79,10 +74,23 @@ namespace DAL.Services
         public async Task<int> GetProviderKeyByName(string name)
         {
             var serviceProvider = await _context.ServiceProviders
-                           .FirstOrDefaultAsync(sp => sp.Name == name);
+                                 .FirstOrDefaultAsync(sp => sp.Name == name);
 
-            return serviceProvider.ProviderKey;
+            if (serviceProvider != null)
+            {
+                return serviceProvider.ProviderKey;
+            }
+            else
+            {
+                var similarProviders = await _context.ServiceProviders
+                    .Where(sp => sp.Name.Contains(name.Trim()) || name.Contains(sp.Name.Trim()))
+                    .Select(sp => new { sp.ProviderKey, sp.Name })
+                    .ToListAsync();
+
+                return 0;
+            }
         }
+
 
 
         public async Task<ServiceProvider?> GetProviderWithWorkHoursAsync(int providerKey)
