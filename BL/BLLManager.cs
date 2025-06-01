@@ -16,6 +16,7 @@ namespace BL
         {
             DB_Manager db = new DB_Manager();
 
+            // יצירת כל ה-DAL services
             IAddressManagement addressManagementDal = new AddressManagement(db);
             IAppointmentManagement appointmentManagementDal = new AppointmentManagement(db);
             IPatientsManagement patientsManagementDal = new PatientsManagement(db);
@@ -24,9 +25,21 @@ namespace BL
             IClinicServiceManagement clinicServiceManagementDal = new ClinicServiceManagement(db);
             IServiceProviderManagement serviceProviderManagementDal = new ServiceProviderManagement(db);
             IWorkHourManagement workHourManagementDal = new WorkHourManagement(db);
+
+            // יצירת Password Service
             IPasswordService passwordService = new PasswordService();
+
+            // יצירת Auth Service
             AuthService = new AuthService(patientsManagementDal, passwordService);
-            PatientService = new PatientService(patientsManagementDal, addressManagementDal, passwordService);
+
+            // יצירת Patient Service עם 3 פרמטרים בלבד
+            PatientService = new PatientService(
+                patientsManagementDal,
+                addressManagementDal,
+                passwordService
+            );
+
+            // יצירת Appointment Service
             AppointmentService = new AppointmentService(
                 appointmentManagementDal,
                 appointmentsSlotManagementDal,

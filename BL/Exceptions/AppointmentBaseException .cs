@@ -259,4 +259,125 @@ namespace BLL.Exceptions
         {
         }
     }
+
+    public class CityNotFoundException : AppointmentBaseException
+    {
+        public CityNotFoundException(string cityName)
+            : base($"The city '{cityName}' does not exist in the system.", 404)
+        {
+        }
+
+        public CityNotFoundException(int cityId)
+            : base($"The city with Id {cityId} does not exist in the system.", 404)
+        {
+        }
+
+        public CityNotFoundException()
+            : base("The requested city does not exist in the system.", 404)
+        {
+        }
+    }
+
+    // רחוב לא נמצא
+    public class StreetNotFoundException : AppointmentBaseException
+    {
+        public StreetNotFoundException(string streetName, string cityName)
+            : base($"The street '{streetName}' in city '{cityName}' does not exist in the system.", 404)
+        {
+        }
+
+        public StreetNotFoundException(int streetId)
+            : base($"The street with Id {streetId} does not exist in the system.", 404)
+        {
+        }
+
+        public StreetNotFoundException()
+            : base("The requested street does not exist in the system.", 404)
+        {
+        }
+    }
+
+    // כתובת לא תקינה
+    public class AddressValidationException : AppointmentBaseException
+    {
+        public AddressValidationException(string field)
+            : base($"Address validation failed: {field} is invalid.", 400)
+        {
+        }
+
+        public AddressValidationException()
+            : base("Address validation failed.", 400)
+        {
+        }
+    }
+
+    // כתובת לא נמצאה
+    public class AddressNotFoundException : AppointmentBaseException
+    {
+        public AddressNotFoundException(int addressId)
+            : base($"The address with Id {addressId} does not exist in the system.", 404)
+        {
+        }
+
+        public AddressNotFoundException()
+            : base("The requested address does not exist in the system.", 404)
+        {
+        }
+    }
+
+    // שגיאת עדכון פרטי פציינט
+    public class PatientUpdateException : AppointmentBaseException
+    {
+        public PatientUpdateException(string reason)
+            : base($"Failed to update patient details: {reason}", 400)
+        {
+        }
+
+        public PatientUpdateException()
+            : base("Failed to update patient details.", 400)
+        {
+        }
+    }
+
+    // שגיאת אימות סיסמה
+    public class PasswordValidationException : AppointmentBaseException
+    {
+        public PasswordValidationException(string reason)
+            : base($"Password validation failed: {reason}", 400)
+        {
+        }
+
+        public PasswordValidationException()
+            : base("Password validation failed.", 400)
+        {
+        }
+    }
+
+    // שגיאת רשאות - משתמש לא מורשה לבצע פעולה
+    public class InsufficientPermissionsException : AppointmentBaseException
+    {
+        public InsufficientPermissionsException(string action)
+            : base($"Insufficient permissions to perform action: {action}", 403)
+        {
+        }
+
+        public InsufficientPermissionsException()
+            : base("Insufficient permissions to perform this action.", 403)
+        {
+        }
+    }
+
+    // נתונים כפולים
+    public class DuplicateDataException : AppointmentBaseException
+    {
+        public DuplicateDataException(string entityType, string value)
+            : base($"A {entityType} with the value '{value}' already exists in the system.", 409)
+        {
+        }
+
+        public DuplicateDataException()
+            : base("Duplicate data found in the system.", 409)
+        {
+        }
+    }
 }

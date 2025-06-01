@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using BLL.API;
+using BLL.Exceptions;
 using WebAPI.Models;
 
 namespace WebAPI.Controllers
@@ -9,10 +10,12 @@ namespace WebAPI.Controllers
     public class PatientController : ControllerBase
     {
         private readonly IPatientService _patientService;
+        private readonly ILogger<PatientController> _logger;
 
-        public PatientController(IBL bl)
+        public PatientController(IBL bl, ILogger<PatientController> logger)
         {
             _patientService = bl.PatientService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -23,12 +26,7 @@ namespace WebAPI.Controllers
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(patientId))
-                    return BadRequest("Patient ID is required.");
-
                 var patient = await _patientService.GetPatientByIdString(patientId);
-                if (patient == null)
-                    return NotFound("Patient not found.");
 
                 var response = new PatientResponse
                 {
@@ -47,9 +45,18 @@ namespace WebAPI.Controllers
 
                 return Ok(response);
             }
-            catch (Exception)
+            catch (PatientNotFoundException ex)
             {
-                return StatusCode(500, "Error retrieving patient.");
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (InvalidAppointmentDataException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting patient {PatientId}", patientId);
+                return StatusCode(500, new { success = false, message = "Internal server error" });
             }
         }
 
@@ -62,13 +69,15 @@ namespace WebAPI.Controllers
             try
             {
                 if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
+                    return BadRequest(new { success = false, message = "Invalid data", errors = errors });
+                }
 
                 bool success;
 
                 if (request.Address != null)
                 {
-                    // עדכון עם כתובת
                     success = await _patientService.UpdatePatientWithAddress(
                         request.PatientId,
                         request.PatientName,
@@ -81,7 +90,6 @@ namespace WebAPI.Controllers
                 }
                 else
                 {
-                    // עדכון רק פרטי קשר
                     success = await _patientService.UpdatePatientDetails(
                         request.PatientId,
                         request.PatientName,
@@ -89,78 +97,66 @@ namespace WebAPI.Controllers
                         request.Phone);
                 }
 
-                if (!success)
-                    return NotFound("Patient not found or update failed.");
-
-                return Ok(new
-                {
-                    success = true,
-                    message = "Patient details updated successfully."
-                });
+                return Ok(new { success = true, message = "Patient updated successfully" });
             }
-            catch (Exception)
+            catch (PatientNotFoundException ex)
             {
-                return StatusCode(500, "Error updating patient.");
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (InvalidAppointmentDataException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (DatabaseException ex)
+            {
+                _logger.LogError(ex, "Database error updating patient {PatientId}", request.PatientId);
+                return StatusCode(500, new { success = false, message = "Database error occurred" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating patient {PatientId}", request.PatientId);
+                return StatusCode(500, new { success = false, message = "Internal server error" });
             }
         }
 
         /// <summary>
-        /// עדכון פרטי קשר בלבד (ללא כתובת)
+        /// שינוי סיסמה
         /// </summary>
-        [HttpPut("update-contact")]
-        public async Task<IActionResult> UpdateContactInfo([FromBody] UpdateContactInfoRequest request)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
-
-                var success = await _patientService.UpdatePatientDetails(
-                    request.PatientId,
-                    request.PatientName,
-                    request.Email,
-                    request.Phone);
-
-                if (!success)
-                    return NotFound("Patient not found or update failed.");
-
-                return Ok(new
-                {
-                    success = true,
-                    message = "Contact information updated successfully."
-                });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, "Error updating contact information.");
-            }
-        }
-
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
             try
             {
                 if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
+                    return BadRequest(new { success = false, message = "Invalid data", errors = errors });
+                }
 
-                var success = await _patientService.ChangePassword(
+                await _patientService.ChangePassword(
                     request.PatientId,
                     request.CurrentPassword,
                     request.NewPassword);
 
-                if (!success)
-                    return BadRequest("Patient not found or current password is incorrect.");
-
-                return Ok(new
-                {
-                    success = true,
-                    message = "Password changed successfully."
-                });
+                return Ok(new { success = true, message = "Password changed successfully" });
             }
-            catch (Exception)
+            catch (PatientNotFoundException ex)
             {
-                return StatusCode(500, "Error changing password.");
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (InvalidAppointmentDataException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (DatabaseException ex)
+            {
+                _logger.LogError(ex, "Database error changing password for patient {PatientId}", request.PatientId);
+                return StatusCode(500, new { success = false, message = "Database error occurred" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error changing password for patient {PatientId}", request.PatientId);
+                return StatusCode(500, new { success = false, message = "Internal server error" });
             }
         }
     }
