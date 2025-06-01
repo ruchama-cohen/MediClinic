@@ -46,7 +46,7 @@ namespace WebAPI.Controllers
                     });
                 }
 
-                var patient = await _patientsManagement.GetPatientById(patientKey);
+                var patient = await _patientsManagement.GetPatientByIdString(patientKey);
                 if (patient == null)
                 {
                     return Unauthorized(new LoginResponse
@@ -108,7 +108,7 @@ namespace WebAPI.Controllers
 
     public class TestPasswordRequest
     {
-        public int PatientId { get; set; }
+        public string PatientId { get; set; }
         public string NewPassword { get; set; } = string.Empty;
     }
 }

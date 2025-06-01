@@ -50,14 +50,17 @@ namespace DAL.Services
                 .Select(x => x.Address.City.Name)
                 .FirstOrDefaultAsync();
         }
-
         
-        public async Task<Patient> GetPatientById(int id)
+
+        public async Task<Patient> GetPatientByIdString(int id)
         {
             return await _context.Patients.FirstOrDefaultAsync(p => p.PatientKey == id);
         }
 
-
+        public async Task<Patient> GetPatientById(string id)
+        {
+            return await _context.Patients.FirstOrDefaultAsync(p => p.PatientId == id);
+        }
 
         public async Task<bool> UpdatePatient(Patient updatedPatient)
         {

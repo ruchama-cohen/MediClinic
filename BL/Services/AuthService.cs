@@ -15,7 +15,7 @@ namespace BLL.Services
             _passwordService = passwordService;
         }
 
-        public async Task<int> Login(int id, string password)
+        public async Task<int> Login(string id, string password)
         {
             try
             {
@@ -40,7 +40,7 @@ namespace BLL.Services
             }
         }
 
-        public async Task<bool> SetPasswordForTesting(int patientId, string newPassword)
+        public async Task<bool> SetPasswordForTesting(string patientId, string newPassword)
         {
             try
             {

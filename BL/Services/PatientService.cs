@@ -32,7 +32,7 @@ namespace BLL.Services
 
         public async Task<bool> UpdatePatient(PatientModel model)
         {
-            var existingPatient = await _patientManagement.GetPatientById(model.PatientKey);
+            var existingPatient = await _patientManagement.GetPatientById(model.PatientId);
             if (existingPatient == null)
                 return false;
 
