@@ -8,57 +8,77 @@ using DAL.API;
 using DAL.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
-
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BLL.Services
 {
     public class AppointmentSlotGeneratorService : BackgroundService
     {
-            private readonly IAppointmentService _appointmentService;
-            private readonly IServiceProviderManagement _serviceProviderManagementDal;
-            private readonly IAppointmentManagement _appointmentManagement;
-            private readonly IAppointmentsSlotManagement _appointmentsSlotManagementDal;
-            private readonly IPatientsManagement _patientsManagementDal;
-            private readonly ILogger<AppointmentSlotGeneratorService> _logger;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger<AppointmentSlotGeneratorService> _logger;
 
-            public AppointmentSlotGeneratorService(
-                IAppointmentService appointmentService,IAppointmentManagement appointmentManagement, IAppointmentsSlotManagement appointmentsSlotManagementDal, IServiceProviderManagement serviceProviderManagementDal, IPatientsManagement patientsManagementDal,
-                ILogger<AppointmentSlotGeneratorService> logger)
-            {
-                _appointmentService = appointmentService;
-                _serviceProviderManagementDal = serviceProviderManagementDal;
-                _appointmentManagement = appointmentManagement;
-                _appointmentsSlotManagementDal = appointmentsSlotManagementDal;
-                _patientsManagementDal = patientsManagementDal;
-                _logger = logger;
-            }
+        public AppointmentSlotGeneratorService(IServiceProvider serviceProvider, ILogger<AppointmentSlotGeneratorService> logger)
+        {
+            _serviceProvider = serviceProvider;
+            _logger = logger;
+        }
 
-            protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            Console.WriteLine("🚀 Background Service Started!");
+
+            while (!stoppingToken.IsCancellationRequested)
             {
-                while (!stoppingToken.IsCancellationRequested)
+                try
                 {
-                    try
-                    {
-                        var targetDate = DateOnly.FromDateTime(DateTime.Now.AddMonths(3));
-                        var providers = await _serviceProviderManagementDal.GetAllAsync();
+                    Console.WriteLine($"⏰ Running at {DateTime.Now}");
 
-                        foreach (var provider in providers)
+                    using var scope = _serviceProvider.CreateScope();
+
+                    var appointmentService = scope.ServiceProvider.GetRequiredService<IAppointmentService>();
+                    var serviceProviderManagement = scope.ServiceProvider.GetRequiredService<IServiceProviderManagement>();
+
+                    var targetDate = DateOnly.FromDateTime(DateTime.Now.AddMonths(3));
+                    var providers = await serviceProviderManagement.GetAllAsync();
+
+                    Console.WriteLine($"👥 Found {providers.Count} active providers");
+                    Console.WriteLine($"📅 Target date: {targetDate}");
+
+                    foreach (var provider in providers)
+                    {
+                        // 👇 Try-catch נפרד לכל רופא
+                        try
                         {
-                            bool result = await _appointmentService.GenerateSlotsForProviderAsync(provider.ProviderKey, targetDate, targetDate);
-                            if (result)
-                                _logger.LogInformation($"Slots generated for provider {provider.ProviderKey} on {targetDate}");
-                            else
-                                _logger.LogWarning($"Failed to generate slots for provider {provider.ProviderKey} on {targetDate}");
+                            Console.WriteLine($"🔄 Processing provider {provider.ProviderKey} ({provider.Name})");
+
+                            bool result = await appointmentService.GenerateSlotsForProviderAsync(provider.ProviderKey, targetDate, targetDate);
+
+                            Console.WriteLine($"✅ Success for {provider.Name}");
+                            _logger.LogInformation($"Slots generated for provider {provider.ProviderKey} on {targetDate}");
+                        }
+                        catch (Exception providerEx)
+                        {
+                            // אם נכשל ברופא אחד - רק תכתוב שגיאה ותמשיך לרופא הבא
+                            Console.WriteLine($"❌ Failed for {provider.Name}: {providerEx.Message}");
+                            _logger.LogWarning($"Failed to generate slots for provider {provider.ProviderKey} ({provider.Name}): {providerEx.Message}");
+
+                            // לא זורק את השגיאה - פשוט ממשיך לרופא הבא
+                            continue;
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error generating appointment slots");
-                    }
 
-                    await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
+                    Console.WriteLine($"✅ Finished processing all {providers.Count} providers");
                 }
+                catch (Exception ex)
+                {
+                    // שגיאה כללית במערכת
+                    Console.WriteLine($"💥 System Error: {ex.Message}");
+                    _logger.LogError(ex, "Error in background service");
+                }
+
+                Console.WriteLine("💤 Waiting 24 hours...");
+                await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
             }
         }
     }
-
+}

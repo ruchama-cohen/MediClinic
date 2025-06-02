@@ -171,6 +171,11 @@ namespace BLL.Services
                 throw new InvalidAppointmentDataException("Patient ID is required");
 
             var patient = await _patientsManagementDal.GetPatientById(id);
+
+            // 👇 הוסף רק את הבדיקה הזאת
+            if (patient == null)
+                throw new PatientNotFoundException(id);
+
             if (patient.PatientKey <= 0)
                 throw new PatientNotFoundException(id);
 
@@ -191,6 +196,8 @@ namespace BLL.Services
                 throw new InvalidAppointmentDataException("Patient key must be positive");
 
             var appointments = await _appointmentManagement.GetAppointmentsByPatientIdAsync(patientKey);
+            if (appointments == null)
+                appointments = new List<Appointment>();
 
             var futureAppointments = appointments
                 .Where(a => a.Slot.SlotDate >= DateOnly.FromDateTime(DateTime.Now))

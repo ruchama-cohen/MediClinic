@@ -115,8 +115,6 @@ namespace BLL.Services
             var existingPatient = await _patientManagement.GetPatientById(model.PatientId);
             if (existingPatient == null)
                 throw new PatientNotFoundException(model.PatientId);
-
-            // עדכון כתובת אם קיימת במודל
             int addressId = existingPatient.AddressId;
             if (model.address != null && model.address.City != null && model.address.Street != null)
             {
