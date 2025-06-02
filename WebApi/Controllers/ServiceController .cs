@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using BLL.API;
 using DAL.API;
 using DAL.Models;
 using System.ComponentModel.DataAnnotations;
@@ -14,18 +15,13 @@ namespace WebAPI.Controllers
         private readonly ILogger<ServiceController> _logger;
 
         public ServiceController(
-            IClinicServiceManagement serviceManagement,
-            IServiceProviderManagement providerManagement,
+            IBL bl, 
             ILogger<ServiceController> logger)
         {
-            _serviceManagement = serviceManagement;
-            _providerManagement = providerManagement;
+            _serviceManagement = bl.ClinicServiceManagement;
+            _providerManagement = bl.ServiceProviderManagement;
             _logger = logger;
         }
-
-        /// <summary>
-        /// קבלת כל השירותים הרפואיים
-        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetAllServices()
         {
@@ -44,8 +40,11 @@ namespace WebAPI.Controllers
                 count = services.Count
             });
         }
+    }
 
-
-
+    public class ServiceResponse
+    {
+        public int ServiceId { get; set; }
+        public string ServiceName { get; set; } = string.Empty;
     }
 }

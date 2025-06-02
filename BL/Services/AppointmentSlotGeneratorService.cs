@@ -77,7 +77,7 @@ namespace BLL.Services
                 }
 
                 Console.WriteLine("💤 Waiting 24 hours...");
-                await Task.Delay(TimeSpan.FromHours(24), stoppingToken);
+                await Task.Delay(TimeSpan.FromDays(90), stoppingToken);
             }
         }
     }
