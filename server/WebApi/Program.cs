@@ -88,18 +88,19 @@ builder.Services.AddScoped<IAppointmentService>(provider =>
     return new AppointmentService(appointmentManagement, appointmentsSlotManagement, serviceProviderManagement, patientsManagement);
 });
 
-// 👇 הוסף את ה-Background Service:
-builder.Services.AddHostedService<AppointmentSlotGeneratorService>();
-
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("ReactApp", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("http://localhost:3000", "http://localhost:3001") // כתובות ה-React app
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials(); // חשוב עבור JWT tokens
     });
 });
+
+
+
 
 builder.Services.AddLogging();
 builder.Services.AddMemoryCache();
@@ -114,7 +115,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowAll");
+app.UseCors("ReactApp");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

@@ -46,7 +46,6 @@ namespace BLL.Services
 
                     foreach (var provider in providers)
                     {
-                        // 👇 Try-catch נפרד לכל רופא
                         try
                         {
                             Console.WriteLine($"🔄 Processing provider {provider.ProviderKey} ({provider.Name})");
@@ -58,11 +57,8 @@ namespace BLL.Services
                         }
                         catch (Exception providerEx)
                         {
-                            // אם נכשל ברופא אחד - רק תכתוב שגיאה ותמשיך לרופא הבא
                             Console.WriteLine($"❌ Failed for {provider.Name}: {providerEx.Message}");
                             _logger.LogWarning($"Failed to generate slots for provider {provider.ProviderKey} ({provider.Name}): {providerEx.Message}");
-
-                            // לא זורק את השגיאה - פשוט ממשיך לרופא הבא
                             continue;
                         }
                     }
@@ -71,13 +67,21 @@ namespace BLL.Services
                 }
                 catch (Exception ex)
                 {
-                    // שגיאה כללית במערכת
                     Console.WriteLine($"💥 System Error: {ex.Message}");
                     _logger.LogError(ex, "Error in background service");
                 }
 
                 Console.WriteLine("💤 Waiting 24 hours...");
-                await Task.Delay(TimeSpan.FromDays(90), stoppingToken);
+                var delay = TimeSpan.FromDays(1); // ✅ תוקן מ־90 ימים ל־1
+
+                if (delay <= TimeSpan.Zero || delay.TotalMilliseconds > int.MaxValue)
+                {
+                    _logger.LogWarning("Invalid delay duration, skipping wait.");
+                }
+                else
+                {
+                    await Task.Delay(delay, stoppingToken);
+                }
             }
         }
     }
