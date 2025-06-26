@@ -23,12 +23,12 @@ function LoginPage() {
 
       // Save token to local storage
       localStorage.setItem('token', result.token);
-
-      // Redirect to home page
+      console.log('Token saved:', result.token);
+c      // Redirect to home page
       navigate('/home');
     } catch (err) {
       console.error('Login error:', err.message);
-      setError('שגיאה כללית. נסה שוב');
+      setError(`Login failed: ${err.message}`);
     }
   };
 
@@ -37,7 +37,7 @@ function LoginPage() {
       <h2>Login</h2>
       <form onSubmit={handleLogin}>
         <div>
-          <label>תעודת זהות:</label><br />
+          <label>ID:</label><br />
           <input
             type="text"
             value={patientId}
@@ -46,7 +46,7 @@ function LoginPage() {
           />
         </div>
         <div>
-          <label>סיסמה:</label><br />
+          <label>Password:</label><br />
           <input
             type="password"
             value={password}
@@ -55,7 +55,7 @@ function LoginPage() {
           />
         </div>
         {error && <div style={{ color: 'red' }}>{error}</div>}
-        <button type="submit">התחבר</button>
+        <button type="submit">connect</button>
       </form>
     </div>
   );

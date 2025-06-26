@@ -1,22 +1,23 @@
 // src/pages/HomePage.jsx
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
-function HomePage() {
-  const navigate = useNavigate();
-
+export default function HomePage() {
+   const navigate = useNavigate();
   const handleLogout = () => {
     localStorage.removeItem('token'); // Clear the token
     navigate('/'); // Go back to login page
   };
 
   return (
-    <div style={{ textAlign: 'center', marginTop: 100 }}>
-      <h1>Welcome to the Clinic System</h1>
-      <p>You are successfully logged in.</p>
-      <button onClick={handleLogout}>Logout</button>
-    </div>
+    <div>
+    <h1>Welcome</h1>
+      <Link to="/appointments/book">Book Appointment</Link><br />
+      <Link to="/appointments/mine">My Appointments</Link><br />
+      <Link to="/services">Medical Services</Link><br />
+      <Link to="/profile">My Profile</Link>
+            <button onClick={handleLogout}>Logout</button>
+    </div>    
   );
 }
 
-export default HomePage;

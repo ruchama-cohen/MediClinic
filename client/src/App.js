@@ -1,26 +1,24 @@
-// src/App.js
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+// src/routes.jsx
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
-import ProtectedRoute from './components/ProtectedRoute';
+import AppointmentBookingPage from './pages/AppointmentBookingPage';
+import MyAppointmentsPage from './pages/MyAppointmentsPage';
+import PatientProfilePage from './pages/PatientProfilePage';
+import ServicesPage from './pages/ServicesPage'; 
 
-function App() {
+export default function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
         <Route path="/" element={<LoginPage />} />
-        <Route
-          path="/home"
-          element={
-            <ProtectedRoute>
-              <HomePage />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/appointments/book" element={<AppointmentBookingPage />} />
+        <Route path="/appointments/mine" element={<MyAppointmentsPage />} />
+        <Route path="/profile" element={<PatientProfilePage />} />
+        <Route path="/services" element={<ServicesPage />} />
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }
 
-export default App;
