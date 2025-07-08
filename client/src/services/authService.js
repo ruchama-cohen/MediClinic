@@ -8,18 +8,12 @@ const response = await axios.post('/auth/login',
   UserId: id,
   UserPassword: password
 });
-
-
 const data = response.data;
-
     const token = data.token || data.Token;
     if (!token) {
       throw new Error('No token received from server');
     }
-
-
     localStorage.setItem('token', token);
-
     return {
       token,
       success: data.success,
