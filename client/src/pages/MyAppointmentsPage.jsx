@@ -1,20 +1,18 @@
 import { useEffect, useState } from 'react';
 import { getAppointmentsByUser, cancelAppointment } from '../services/appointmentService.js';
- import { getPatientIdFromToken } from '../utils/authUtils';
- 
+import { getPatientIdFromToken } from '../utils/authUtils';
+
 export default function MyAppointmentsPage() {
   const [appointments, setAppointments] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-
-   const patientId =getPatientIdFromToken();
-    console.log('Patient ID:', patientId); // Debugging line to check patient ID
+    const patientId = getPatientIdFromToken();
     if (patientId) {
       getAppointmentsByUser(patientId)
         .then((data) => {
-          setAppointments(data.data || []);  // לפי מבנה התגובה שלך ב-API
+          setAppointments(data.data || []);
           setError(null);
         })
         .catch((err) => {
@@ -31,7 +29,7 @@ export default function MyAppointmentsPage() {
   const handleCancel = async (id) => {
     try {
       await cancelAppointment(id);
-      setAppointments((prev) => prev.filter((a) => a.id !== id));
+      setAppointments((prev) => prev.filter((a) => a.id !== id && a.appointmentId !== id));
     } catch (error) {
       console.error('Failed to cancel appointment:', error);
       alert('Failed to cancel appointment. Please try again.');
@@ -50,12 +48,23 @@ export default function MyAppointmentsPage() {
         <p>No appointments found.</p>
       ) : (
         <ul>
-          {appointments.map((a) => (
-            <li key={a.id}>
-              {a.date} - {a.time} with {a.providerName}
-              <button onClick={() => handleCancel(a.id)}>Cancel</button>
-            </li>
-          ))}
+          {appointments.map((a) => {
+            const slot = a.slot || {};
+
+            const doctorName = slot.providerKeyNavigation?.name || 'Unknown Doctor';
+            const location = slot.branch?.branchName || 'Unknown Location';
+            const date = slot.slotDate || a.date || 'Unknown Date';
+            const time = slot.slotStart || a.time || 'Unknown Time';
+
+            return (
+              <li key={a.id || a.appointmentId}>
+                {date} - {time}
+                {' '}with <strong>{doctorName}</strong> at <strong>{location}</strong>
+                <br />
+                <button onClick={() => handleCancel(a.id || a.appointmentId)}>Cancel</button>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
