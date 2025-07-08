@@ -106,7 +106,31 @@ namespace BLL.Services
                 address = address
             };
         }
+        public async Task<PatientModel?> GetPatientByKey(int patientKey)
+        {
+            var patient = await _patientManagement.GetPatientByIdString(patientKey); // ← זה מחפש לפי PatientKey
 
+            if (patient == null)
+                throw new PatientNotFoundException(patientKey.ToString());
+
+            Address? address = null;
+            if (patient.AddressId > 0)
+            {
+                address = await _addressManagement.GetAddressById(patient.AddressId);
+            }
+
+            return new PatientModel
+            {
+                PatientKey = patient.PatientKey,
+                PatientId = patient.PatientId,
+                PatientName = patient.PatientName,
+                Email = patient.Email,
+                Phone = patient.Phone,
+                PatientPassword = "",
+                address = address
+            };
+        }
+        
         public async Task<bool> UpdatePatient(PatientModel model)
         {
             if (model == null)
@@ -187,8 +211,7 @@ namespace BLL.Services
 
             return true;
         }
-
-        private bool IsValidEmail(string email)
+             private bool IsValidEmail(string email)
         {
             try
             {
@@ -200,5 +223,6 @@ namespace BLL.Services
                 return false;
             }
         }
+        
     }
 }

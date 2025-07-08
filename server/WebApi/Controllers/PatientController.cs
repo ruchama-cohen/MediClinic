@@ -59,6 +59,40 @@ namespace WebAPI.Controllers
                 return StatusCode(500, new { success = false, message = "Internal server error" });
             }
         }
+        [HttpGet("by-key/{patientKey}")]
+        public async Task<IActionResult> GetPatientByKey(int patientKey)
+        {
+            try
+            {
+                var patient = await _patientService.GetPatientByKey(patientKey);
+
+                var response = new PatientResponse
+                {
+                    PatientId = patient.PatientId,
+                    PatientName = patient.PatientName,
+                    Email = patient.Email,
+                    Phone = patient.Phone,
+                    Address = patient.address != null ? new AddressResponse
+                    {
+                        CityName = patient.address.City?.Name ?? "",
+                        StreetName = patient.address.Street?.Name ?? "",
+                        HouseNumber = patient.address.HouseNumber,
+                        PostalCode = patient.address.PostalCode
+                    } : null
+                };
+
+                return Ok(response);
+            }
+            catch (PatientNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting patient by key {PatientKey}", patientKey);
+                return StatusCode(500, new { success = false, message = "Internal server error" });
+            }
+        }
 
         /// <summary>
         /// עדכון פרטי משתמש עם כתובת

@@ -32,12 +32,16 @@ namespace WebAPI.Controllers
             return Ok(new
             {
                 success = true,
-                data = services.Select(s => new ServiceResponse
+                data = services
+                .Where(s => !string.Equals(s.ServiceName, "Branch Manager", StringComparison.OrdinalIgnoreCase))
+                .Select(s => new ServiceResponse
                 {
                     ServiceId = s.ServiceId,
                     ServiceName = s.ServiceName
                 }),
                 count = services.Count
+
+
             });
         }
     }

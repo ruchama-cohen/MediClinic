@@ -17,7 +17,7 @@ namespace WebAPI.Controllers
             _logger = logger;
         }
 
-        [HttpGet("byprovider/{doctorName}")]
+        [HttpGet("byProvider/{doctorName}")]
         public async Task<IActionResult> GetAppointmentsByProviderName(string doctorName)
         {
             try
@@ -49,7 +49,7 @@ namespace WebAPI.Controllers
             }
         }
 
-        [HttpGet("byprovidercity")]
+        [HttpGet("byProviderCity")]
         public async Task<IActionResult> GetAvailableSlotsByProviderAndCity([FromQuery] string doctorName, [FromQuery] string cityName)
         {
             try
@@ -81,7 +81,7 @@ namespace WebAPI.Controllers
             }
         }
 
-        [HttpGet("byservice/{serviceId}")]
+        [HttpGet("byService/{serviceId}")]
         public async Task<IActionResult> GetAvailableSlotsByService(int serviceId)
         {
             try
@@ -189,7 +189,7 @@ namespace WebAPI.Controllers
             }
         }
 
-        [HttpGet("byuser/{patientId}")]
+        [HttpGet("byUser/{patientId}")]
         public async Task<IActionResult> GetAppointmentsByUser(string patientId)
         {
             try
@@ -217,7 +217,7 @@ namespace WebAPI.Controllers
             }
         }
 
-        [HttpPost("generateslots")]
+        [HttpPost("generateSlots")]
         public async Task<IActionResult> GenerateSlotsForProvider([FromQuery] int providerKey, [FromQuery] DateOnly startDate, [FromQuery] DateOnly endDate)
         {
             try
