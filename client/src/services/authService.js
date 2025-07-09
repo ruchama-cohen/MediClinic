@@ -1,9 +1,9 @@
 //src/services/authService.ts
-import axios from '../axiosConfig';
+import instance from '../axiosConfig';
 
 export async function login(id, password) {
   try {
-const response = await axios.post('/auth/login',
+const response = await instance.post('/auth/login',
 {
   UserId: id,
   UserPassword: password

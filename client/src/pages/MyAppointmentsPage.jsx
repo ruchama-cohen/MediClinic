@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getAppointmentsByUser, cancelAppointment } from '../services/appointmentService.js';
-import { getPatientIdFromToken } from '../utils/authUtils';
+import { getPatientKeyFromToken } from '../utils/authUtils';
 
 export default function MyAppointmentsPage() {
   const [appointments, setAppointments] = useState([]);
@@ -8,9 +8,9 @@ export default function MyAppointmentsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const patientId = getPatientIdFromToken();
-    if (patientId) {
-      getAppointmentsByUser(patientId)
+    const patientKey = getPatientKeyFromToken();
+    if (patientKey) {
+      getAppointmentsByUser(patientKey)
         .then((data) => {
           setAppointments(data.data || []);
           setError(null);
@@ -21,7 +21,7 @@ export default function MyAppointmentsPage() {
         })
         .finally(() => setLoading(false));
     } else {
-      setError('No patient ID found. Please log in.');
+      setError('No patient key found. Please log in.');
       setLoading(false);
     }
   }, []);
@@ -70,3 +70,11 @@ export default function MyAppointmentsPage() {
     </div>
   );
 }
+  src/pages/AppointmentBookingPage.jsx
+        modified:   src/pages/MyAppointmentsPage.jsx
+        modified:   src/pages/PatientProfilePage.jsx
+        modified:   src/services/appointmentService.js
+        modified:   src/services/authService.js
+        modified:   src/services/patientService.js
+        modified:   src/services/servicesService.js
+        modified:   src/utils/authUtils.js 
