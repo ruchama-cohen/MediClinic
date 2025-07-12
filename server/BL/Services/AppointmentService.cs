@@ -93,7 +93,8 @@ namespace BLL.Services
             return availableSlots;
         }
 
-        public async Task<bool> BookAppointmentAsync(int slotId, string patientId)
+        // מתודה מעודכנת לעבוד עם PatientKey כמחרוזת (מהקונטרולר)
+        public async Task<bool> BookAppointmentAsync(int slotId, string patientKeyAsString)
         {
             await _semaphore.WaitAsync();
 
@@ -102,12 +103,16 @@ namespace BLL.Services
                 if (slotId <= 0)
                     throw new InvalidAppointmentDataException("Slot ID must be positive");
 
-                if (string.IsNullOrWhiteSpace(patientId))
-                    throw new InvalidAppointmentDataException("Patient ID is required");
+                if (string.IsNullOrWhiteSpace(patientKeyAsString))
+                    throw new InvalidAppointmentDataException("Patient Key is required");
 
-                var patient = await _patientsManagementDal.GetPatientById(patientId);
+                // המרה מ-string ל-int
+                if (!int.TryParse(patientKeyAsString, out int patientKey) || patientKey <= 0)
+                    throw new InvalidAppointmentDataException("Valid Patient Key is required");
+
+                var patient = await _patientsManagementDal.GetPatientByIdString(patientKey);
                 if (patient == null)
-                    throw new PatientNotFoundException(patientId);
+                    throw new PatientNotFoundException(patientKeyAsString);
 
                 var slot = await _appointmentsSlotManagementDal.GetSlotByIdAsync(slotId);
                 if (slot == null)
@@ -172,7 +177,6 @@ namespace BLL.Services
 
             var patient = await _patientsManagementDal.GetPatientById(id);
 
-            // 👇 הוסף רק את הבדיקה הזאת
             if (patient == null)
                 throw new PatientNotFoundException(id);
 
@@ -286,6 +290,11 @@ namespace BLL.Services
                 throw new NoAvailableSlotsException($"for provider {provider.Name} in the specified date range");
 
             return true;
+        }
+
+        public Task<bool> BookAppointmentAsync(int slotId, int patientKey)
+        {
+            throw new NotImplementedException();
         }
     }
 }

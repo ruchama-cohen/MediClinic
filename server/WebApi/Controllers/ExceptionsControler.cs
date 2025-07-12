@@ -134,20 +134,6 @@ namespace WebAPI.Controllers
                 statusCode: 500,
                 errorCode: "UNKNOWN_ERROR"
             ));
-
-
-
-                // שנה לזה:
-                if (exceptionDetails?.Error is PatientNotFoundException patientNotFoundEx)
-                {
-                    _logger.LogWarning("מטופל לא נמצא: {Message}", patientNotFoundEx.Message);
-                    return NotFound(CreateProblemDetails(
-                        title: "מטופל לא נמצא",
-                        detail: patientNotFoundEx.Message,
-                        statusCode: 404,
-                        errorCode: "PATIENT_NOT_FOUND"
-                    ));
-                }
         }
 
         private object CreateProblemDetails(string title, string detail, int statusCode, string errorCode)
@@ -163,7 +149,5 @@ namespace WebAPI.Controllers
                 traceId = HttpContext.TraceIdentifier
             };
         }
-
-
     }
 }

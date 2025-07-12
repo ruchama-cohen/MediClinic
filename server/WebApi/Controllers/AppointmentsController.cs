@@ -118,7 +118,8 @@ namespace WebAPI.Controllers
         {
             try
             {
-                await _appointmentService.BookAppointmentAsync(slotId, request.PatientKey);
+                // המרה של PatientKey למחרוזת כדי לעבוד עם הפונקציה הקיימת
+                await _appointmentService.BookAppointmentAsync(slotId, request.PatientKey.ToString());
                 return Ok(new { success = true, message = "Appointment booked successfully" });
             }
             catch (InvalidAppointmentDataException ex)
@@ -284,7 +285,7 @@ namespace WebAPI.Controllers
 
         public class BookAppointmentRequest
         {
-            public int PatientKey { get; set; } // שונה מ-PatientId ל-PatientKey
+            public int PatientKey { get; set; }
         }
     }
 }

@@ -114,12 +114,19 @@ namespace WebAPI.Controllers
                     return BadRequest(new { success = false, message = "Invalid data", errors = errors });
                 }
 
+                // קבלת המטופל לפי PatientKey
+                var patient = await _patientService.GetPatientByKey(request.PatientKey);
+                if (patient == null)
+                {
+                    return NotFound(new { success = false, message = "Patient not found" });
+                }
+
                 bool success;
 
                 if (request.Address != null)
                 {
                     success = await _patientService.UpdatePatientWithAddress(
-                        request.PatientKey,
+                        patient.PatientId, // משתמש ב-PatientId מהמטופל שנמצא
                         request.PatientName,
                         request.Email,
                         request.Phone,
@@ -130,8 +137,8 @@ namespace WebAPI.Controllers
                 }
                 else
                 {
-                    success = await _patientService.UpdatePatientDetailsByKey(
-                        request.PatientKey,
+                    success = await _patientService.UpdatePatientDetails(
+                        patient.PatientId, // משתמש ב-PatientId מהמטופל שנמצא
                         request.PatientName,
                         request.Email,
                         request.Phone);
@@ -173,8 +180,15 @@ namespace WebAPI.Controllers
                     return BadRequest(new { success = false, message = "Invalid data", errors = errors });
                 }
 
-                await _patientService.ChangePasswordByKey(
-                    request.PatientKey,
+                // קבלת המטופל לפי PatientKey
+                var patient = await _patientService.GetPatientByKey(request.PatientKey);
+                if (patient == null)
+                {
+                    return NotFound(new { success = false, message = "Patient not found" });
+                }
+
+                await _patientService.ChangePassword(
+                    patient.PatientId, // משתמש ב-PatientId מהמטופל שנמצא
                     request.CurrentPassword,
                     request.NewPassword);
 

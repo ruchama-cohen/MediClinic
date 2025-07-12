@@ -54,40 +54,6 @@ namespace BLL.Services
             return true;
         }
 
-        // הוסף מתודה חדשה לעבודה עם PatientKey
-        public async Task<bool> ChangePasswordByKey(int patientKey, string oldPassword, string newPassword)
-        {
-            if (patientKey <= 0)
-                throw new InvalidAppointmentDataException("Patient Key is required");
-
-            if (string.IsNullOrWhiteSpace(oldPassword))
-                throw new InvalidAppointmentDataException("Current password is required");
-
-            if (string.IsNullOrWhiteSpace(newPassword))
-                throw new InvalidAppointmentDataException("New password is required");
-
-            if (newPassword.Length < 4 || newPassword.Length > 15)
-                throw new InvalidAppointmentDataException("Password must be between 4 and 15 characters");
-
-            var patient = await _patientManagement.GetPatientByIdString(patientKey);
-            if (patient == null)
-                throw new PatientNotFoundException(patientKey.ToString());
-
-            if (string.IsNullOrEmpty(patient.PatientPassword))
-                throw new InvalidAppointmentDataException("No password set for this patient");
-
-            if (!_passwordService.VerifyPassword(oldPassword, patient.PatientPassword))
-                throw new InvalidAppointmentDataException("Current password is incorrect");
-
-            patient.PatientPassword = _passwordService.HashPassword(newPassword);
-            bool result = await _patientManagement.UpdatePatient(patient);
-
-            if (!result)
-                throw new DatabaseException("Failed to update password");
-
-            return true;
-        }
-
         public async Task<bool> UpdatePatientDetails(string patientId, string name, string email, string phone)
         {
             if (string.IsNullOrWhiteSpace(patientId))
@@ -104,36 +70,6 @@ namespace BLL.Services
             var existingPatient = await _patientManagement.GetPatientById(patientId);
             if (existingPatient == null)
                 throw new PatientNotFoundException(patientId);
-            existingPatient.PatientName = name.Trim();
-            existingPatient.Email = email.Trim();
-            existingPatient.Phone = phone.Trim();
-
-            bool result = await _patientManagement.UpdatePatient(existingPatient);
-            if (!result)
-                throw new DatabaseException("Failed to update patient details");
-
-            return true;
-        }
-
-        // הוסף מתודה חדשה לעבודה עם PatientKey
-        public async Task<bool> UpdatePatientDetailsByKey(int patientKey, string name, string email, string phone)
-        {
-            if (patientKey <= 0)
-                throw new InvalidAppointmentDataException("Patient Key is required");
-
-            if (string.IsNullOrWhiteSpace(name) || name.Length < 2)
-                throw new InvalidAppointmentDataException("Name must be at least 2 characters");
-
-            if (string.IsNullOrWhiteSpace(email) || !IsValidEmail(email))
-                throw new InvalidAppointmentDataException("Valid email is required");
-
-            if (string.IsNullOrWhiteSpace(phone) || phone.Length < 10)
-                throw new InvalidAppointmentDataException("Valid phone number is required");
-
-            var existingPatient = await _patientManagement.GetPatientByIdString(patientKey);
-            if (existingPatient == null)
-                throw new PatientNotFoundException(patientKey.ToString());
-
             existingPatient.PatientName = name.Trim();
             existingPatient.Email = email.Trim();
             existingPatient.Phone = phone.Trim();
@@ -277,51 +213,6 @@ namespace BLL.Services
             return true;
         }
 
-        // הוסף מתודה חדשה לעבודה עם PatientKey
-        public async Task<bool> UpdatePatientWithAddress(int patientKey, string name, string email, string phone,
-            string? cityName = null, string? streetName = null, int? houseNumber = null, string? postalCode = null)
-        {
-            if (patientKey <= 0)
-                throw new InvalidAppointmentDataException("Patient Key is required");
-
-            var existingPatient = await _patientManagement.GetPatientByIdString(patientKey);
-            if (existingPatient == null)
-                throw new PatientNotFoundException(patientKey.ToString());
-
-            existingPatient.PatientName = name?.Trim() ?? existingPatient.PatientName;
-            existingPatient.Email = email?.Trim() ?? existingPatient.Email;
-            existingPatient.Phone = phone?.Trim() ?? existingPatient.Phone;
-
-            if (!string.IsNullOrWhiteSpace(cityName) &&
-                !string.IsNullOrWhiteSpace(streetName) &&
-                houseNumber.HasValue && houseNumber.Value > 0 &&
-                !string.IsNullOrWhiteSpace(postalCode))
-            {
-                if (cityName.Length < 2)
-                    throw new InvalidAppointmentDataException("City name must be at least 2 characters");
-
-                if (streetName.Length < 2)
-                    throw new InvalidAppointmentDataException("Street name must be at least 2 characters");
-
-                if (houseNumber.Value <= 0 || houseNumber.Value > 9999)
-                    throw new InvalidAppointmentDataException("House number must be between 1 and 9999");
-
-                if (postalCode.Length < 4 || postalCode.Length > 10)
-                    throw new InvalidAppointmentDataException("Postal code must be between 4 and 10 characters");
-
-                int newAddressId = await _addressManagement.CreateFullAddressAsync(
-                    cityName, streetName, houseNumber.Value, postalCode);
-
-                existingPatient.AddressId = newAddressId;
-            }
-
-            bool result = await _patientManagement.UpdatePatient(existingPatient);
-            if (!result)
-                throw new DatabaseException("Failed to update patient with address");
-
-            return true;
-        }
-
         private bool IsValidEmail(string email)
         {
             try
@@ -335,4 +226,4 @@ namespace BLL.Services
             }
         }
     }
-}git 
+}
