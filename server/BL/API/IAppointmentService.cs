@@ -15,8 +15,8 @@ namespace BLL.API
         Task CancelAppointmentAsync(int appointmentId);
         Task<List<Appointment>> GetAppointmentsByUserAsync(string patientName);
         Task<bool> BookAppointmentAsync(int slotId, string patientId);
+        Task<bool> BookAppointmentAsync(int slotId, int patientKey); // הוסף אוברלואד לעבודה עם PatientKey
         Task<bool> GenerateSlotsForProviderAsync(int providerKey, DateOnly startDate, DateOnly endDate);
         Task<List<Appointment>> GetAppointmentsByPatientIdAsync(int patientKey);
-
     }
 }

@@ -118,7 +118,7 @@ namespace WebAPI.Controllers
         {
             try
             {
-                await _appointmentService.BookAppointmentAsync(slotId, request.PatientId);
+                await _appointmentService.BookAppointmentAsync(slotId, request.PatientKey);
                 return Ok(new { success = true, message = "Appointment booked successfully" });
             }
             catch (InvalidAppointmentDataException ex)
@@ -151,12 +151,12 @@ namespace WebAPI.Controllers
             }
             catch (DatabaseException ex)
             {
-                _logger.LogError(ex, "Database error booking appointment - SlotId: {SlotId}, PatientId: {PatientId}", slotId, request.PatientId);
+                _logger.LogError(ex, "Database error booking appointment - SlotId: {SlotId}, PatientKey: {PatientKey}", slotId, request.PatientKey);
                 return StatusCode(500, new { success = false, message = "Database error occurred" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error booking appointment - SlotId: {SlotId}, PatientId: {PatientId}", slotId, request.PatientId);
+                _logger.LogError(ex, "Error booking appointment - SlotId: {SlotId}, PatientKey: {PatientKey}", slotId, request.PatientKey);
                 return StatusCode(500, new { success = false, message = "Internal server error" });
             }
         }
@@ -217,6 +217,35 @@ namespace WebAPI.Controllers
             }
         }
 
+        // הוסף endpoint חדש לעבודה עם PatientKey
+        [HttpGet("byUserKey/{patientKey}")]
+        public async Task<IActionResult> GetAppointmentsByUserKey(int patientKey)
+        {
+            try
+            {
+                var appointments = await _appointmentService.GetAppointmentsByPatientIdAsync(patientKey);
+                return Ok(new { success = true, data = appointments, count = appointments.Count });
+            }
+            catch (InvalidAppointmentDataException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (PatientNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (DatabaseException ex)
+            {
+                _logger.LogError(ex, "Database error getting appointments for patient key: {PatientKey}", patientKey);
+                return StatusCode(500, new { success = false, message = "Database error occurred" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting appointments for patient key: {PatientKey}", patientKey);
+                return StatusCode(500, new { success = false, message = "Internal server error" });
+            }
+        }
+
         [HttpPost("generateSlots")]
         public async Task<IActionResult> GenerateSlotsForProvider([FromQuery] int providerKey, [FromQuery] DateOnly startDate, [FromQuery] DateOnly endDate)
         {
@@ -255,7 +284,7 @@ namespace WebAPI.Controllers
 
         public class BookAppointmentRequest
         {
-            public string PatientId { get; set; } = string.Empty;
+            public int PatientKey { get; set; } // שונה מ-PatientId ל-PatientKey
         }
     }
 }

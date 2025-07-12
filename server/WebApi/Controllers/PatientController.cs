@@ -19,7 +19,7 @@ namespace WebAPI.Controllers
         }
 
         /// <summary>
-        /// קבלת פרטי משתמש עם כתובת
+        /// קבלת פרטי משתמש עם כתובת לפי PatientId
         /// </summary>
         [HttpGet("{patientId}")]
         public async Task<IActionResult> GetPatient(string patientId)
@@ -30,6 +30,7 @@ namespace WebAPI.Controllers
 
                 var response = new PatientResponse
                 {
+                    PatientKey = patient.PatientKey,
                     PatientId = patient.PatientId,
                     PatientName = patient.PatientName,
                     Email = patient.Email,
@@ -59,6 +60,10 @@ namespace WebAPI.Controllers
                 return StatusCode(500, new { success = false, message = "Internal server error" });
             }
         }
+
+        /// <summary>
+        /// קבלת פרטי משתמש עם כתובת לפי PatientKey
+        /// </summary>
         [HttpGet("by-key/{patientKey}")]
         public async Task<IActionResult> GetPatientByKey(int patientKey)
         {
@@ -68,6 +73,7 @@ namespace WebAPI.Controllers
 
                 var response = new PatientResponse
                 {
+                    PatientKey = patient.PatientKey,
                     PatientId = patient.PatientId,
                     PatientName = patient.PatientName,
                     Email = patient.Email,
@@ -113,7 +119,7 @@ namespace WebAPI.Controllers
                 if (request.Address != null)
                 {
                     success = await _patientService.UpdatePatientWithAddress(
-                        request.PatientId,
+                        request.PatientKey,
                         request.PatientName,
                         request.Email,
                         request.Phone,
@@ -124,8 +130,8 @@ namespace WebAPI.Controllers
                 }
                 else
                 {
-                    success = await _patientService.UpdatePatientDetails(
-                        request.PatientId,
+                    success = await _patientService.UpdatePatientDetailsByKey(
+                        request.PatientKey,
                         request.PatientName,
                         request.Email,
                         request.Phone);
@@ -143,12 +149,12 @@ namespace WebAPI.Controllers
             }
             catch (DatabaseException ex)
             {
-                _logger.LogError(ex, "Database error updating patient {PatientId}", request.PatientId);
+                _logger.LogError(ex, "Database error updating patient {PatientKey}", request.PatientKey);
                 return StatusCode(500, new { success = false, message = "Database error occurred" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating patient {PatientId}", request.PatientId);
+                _logger.LogError(ex, "Error updating patient {PatientKey}", request.PatientKey);
                 return StatusCode(500, new { success = false, message = "Internal server error" });
             }
         }
@@ -167,8 +173,8 @@ namespace WebAPI.Controllers
                     return BadRequest(new { success = false, message = "Invalid data", errors = errors });
                 }
 
-                await _patientService.ChangePassword(
-                    request.PatientId,
+                await _patientService.ChangePasswordByKey(
+                    request.PatientKey,
                     request.CurrentPassword,
                     request.NewPassword);
 
@@ -184,12 +190,12 @@ namespace WebAPI.Controllers
             }
             catch (DatabaseException ex)
             {
-                _logger.LogError(ex, "Database error changing password for patient {PatientId}", request.PatientId);
+                _logger.LogError(ex, "Database error changing password for patient {PatientKey}", request.PatientKey);
                 return StatusCode(500, new { success = false, message = "Database error occurred" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error changing password for patient {PatientId}", request.PatientId);
+                _logger.LogError(ex, "Error changing password for patient {PatientKey}", request.PatientKey);
                 return StatusCode(500, new { success = false, message = "Internal server error" });
             }
         }

@@ -4,8 +4,8 @@ namespace WebAPI.Models
 {
     public class UpdatePatientRequest
     {
-        [Required(ErrorMessage = "Patient ID is required")]
-        public string PatientId { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Patient Key is required")]
+        public int PatientKey { get; set; } // שונה מ-PatientId ל-PatientKey
 
         [Required(ErrorMessage = "Name is required")]
         [StringLength(100, MinimumLength = 2, ErrorMessage = "Name must be between 2 and 100 characters")]
@@ -43,6 +43,7 @@ namespace WebAPI.Models
 
     public class PatientResponse
     {
+        public int PatientKey { get; set; } // הוסף PatientKey
         public string PatientId { get; set; } = string.Empty;
         public string PatientName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
@@ -61,8 +62,8 @@ namespace WebAPI.Models
 
     public class ChangePasswordRequest
     {
-        [Required(ErrorMessage = "Patient ID is required")]
-        public string PatientId { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Patient Key is required")]
+        public int PatientKey { get; set; } // שונה מ-PatientId ל-PatientKey
 
         [Required(ErrorMessage = "Current password is required")]
         public string CurrentPassword { get; set; } = string.Empty;
@@ -78,8 +79,8 @@ namespace WebAPI.Models
 
     public class UpdateContactInfoRequest
     {
-        [Required(ErrorMessage = "Patient ID is required")]
-        public string PatientId { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Patient Key is required")]
+        public int PatientKey { get; set; } // שונה מ-PatientId ל-PatientKey
 
         [Required(ErrorMessage = "Name is required")]
         [StringLength(100, MinimumLength = 2)]
