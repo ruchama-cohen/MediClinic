@@ -1,11 +1,9 @@
 import instance from '../axiosConfig';
 
-
 export async function getPatient(patientKey) {
   const response = await instance.get(`/patient/by-key/${patientKey}`);
   return response.data;
 }
-
 
 export async function updatePatient(patient) {
   return instance.put('/patient/update', {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getAvailableSlotsByService, bookAppointment } from '../services/appointmentService.js';
 import { getAllServices } from '../services/servicesService';
-import { getPatientIdFromToken } from '../utils/authUtils';
+import { getPatientKeyFromToken } from '../utils/authUtils';
 
 export default function AppointmentBookingPage() {
     const [services, setServices] = useState([]);
@@ -11,7 +11,6 @@ export default function AppointmentBookingPage() {
         getAllServices().then(setServices);
     }, []);
 
-
     const handleServiceChange = async (e) => {
         const serviceId = e.target.value;
         const available = await getAvailableSlotsByService(serviceId);
@@ -20,12 +19,12 @@ export default function AppointmentBookingPage() {
     };
 
     const handleBook = async (slotId) => {
-        const patientId = getPatientIdFromToken();
-        if (!patientId) {
-            alert('No patient ID found. Please log in again.');
+        const patientKey = getPatientKeyFromToken();
+        if (!patientKey) {
+            alert('No patient key found. Please log in again.');
             return;
         }
-        await bookAppointment(slotId, patientId);
+        await bookAppointment(slotId, patientKey);
         alert('Appointment successfully booked!');
     };
 
@@ -52,8 +51,6 @@ export default function AppointmentBookingPage() {
                             {slot.slotDate} - {slot.slotStart}:00
                             <button onClick={() => handleBook(slot.slotId)}>Book</button>
                         </li>
-
-
                     ))}
             </ul>
         </div>

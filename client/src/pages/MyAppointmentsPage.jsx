@@ -70,11 +70,3 @@ export default function MyAppointmentsPage() {
     </div>
   );
 }
-  src/pages/AppointmentBookingPage.jsx
-        modified:   src/pages/MyAppointmentsPage.jsx
-        modified:   src/pages/PatientProfilePage.jsx
-        modified:   src/services/appointmentService.js
-        modified:   src/services/authService.js
-        modified:   src/services/patientService.js
-        modified:   src/services/servicesService.js
-        modified:   src/utils/authUtils.js 

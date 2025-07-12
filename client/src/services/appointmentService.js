@@ -1,5 +1,5 @@
-import instance from '../axiosConfig.js'; // או הנתיב שבו מוגדר ה-instance
-//src/services/appointmentService
+import instance from '../axiosConfig.js';
+
 // קבלת תורים לפי שם רופא
 export async function getAppointmentsByProviderName(doctorName) {
   const response = await instance.get(`/appointments/byProvider/${encodeURIComponent(doctorName)}`);
@@ -20,7 +20,7 @@ export async function getAvailableSlotsByService(serviceId) {
   return response.data;
 }
 
-// הזמנת תור (Booking)
+// הזמנת תור (Booking) - מעודכן לעבוד עם PatientKey
 export async function bookAppointment(slotId, patientKey) {
   const response = await instance.post(`/appointments/book/${slotId}`, { PatientKey: patientKey });
   return response.data;
@@ -32,9 +32,9 @@ export async function cancelAppointment(appointmentId) {
   return response.data;
 }
 
-// קבלת תורים לפי משתמש (מטופל)
+// קבלת תורים לפי משתמש (מטופל) - מעודכן לעבוד עם PatientKey
 export async function getAppointmentsByUser(patientKey) {
-  const response = await instance.get(`/appointments/byUser/${encodeURIComponent(patientKey)}`);
+  const response = await instance.get(`/appointments/byUserKey/${patientKey}`);
   return response.data;
 }
 
@@ -43,7 +43,7 @@ export async function generateSlotsForProvider(providerKey, startDate, endDate) 
   const response = await instance.post('/appointments/generateSlots', null, {
     params: {
       providerKey,
-      startDate, // צריך להיות בפורמט שמתאים ל-API, לדוגמה 'YYYY-MM-DD'
+      startDate,
       endDate,
     },
   });
