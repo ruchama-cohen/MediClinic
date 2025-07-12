@@ -6,20 +6,30 @@ export async function getPatient(patientKey) {
 }
 
 export async function updatePatient(patient) {
-  return instance.put('/patient/update', {
+  // בדיקה אם יש נתוני כתובת שהוזנו
+  const hasAddressData = patient.Address && (
+    patient.Address.CityName || 
+    patient.Address.StreetName || 
+    patient.Address.HouseNumber || 
+    patient.Address.PostalCode
+  );
+
+  // הכנת הבקשה לפי הפורמט הנדרש של השרת
+  const requestData = {
     PatientKey: patient.PatientKey,
     PatientName: patient.PatientName,
     Email: patient.Email,
     Phone: patient.Phone,
-    Address: patient.Address
-      ? {
-          CityName: patient.Address.CityName,
-          StreetName: patient.Address.StreetName,
-          HouseNumber: patient.Address.HouseNumber,
-          PostalCode: patient.Address.PostalCode,
-        }
-      : null,
-  });
+    // שלח כתובת רק אם יש נתונים
+    Address: hasAddressData ? {
+      CityName: patient.Address.CityName || '',
+      StreetName: patient.Address.StreetName || '',
+      HouseNumber: parseInt(patient.Address.HouseNumber) || 0,
+      PostalCode: patient.Address.PostalCode || ''
+    } : null
+  };
+
+  return instance.put('/patient/update', requestData);
 }
 
 export async function changePassword({ patientKey, currentPassword, newPassword }) {
@@ -27,5 +37,6 @@ export async function changePassword({ patientKey, currentPassword, newPassword 
     PatientKey: patientKey,
     CurrentPassword: currentPassword,
     NewPassword: newPassword,
+    ConfirmPassword: newPassword // השרת מצפה גם לשדה זה
   });
 }
