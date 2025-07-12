@@ -5,6 +5,7 @@ import { handleApiError } from '../utils/errorUtil';
 
 export default function PatientProfilePage() {
   const [patient, setPatient] = useState(null);
+  const [originalPatient, setOriginalPatient] = useState(null);
   const [newPassword, setNewPassword] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -17,7 +18,7 @@ export default function PatientProfilePage() {
     if (patientKey) {
       getPatient(patientKey)
         .then((data) => {
-          setPatient({
+          const patientData = {
             ...data,
             PatientKey: data.PatientKey || patientKey,
             // וידוא שיש כתובת ברירת מחדל
@@ -27,7 +28,9 @@ export default function PatientProfilePage() {
               HouseNumber: '',
               PostalCode: ''
             }
-          });
+          };
+          setPatient(patientData);
+          setOriginalPatient(JSON.parse(JSON.stringify(patientData))); // עותק עמוק
         })
         .catch(handleApiError)
         .finally(() => setLoading(false));
@@ -45,51 +48,100 @@ export default function PatientProfilePage() {
       return;
     }
 
-    if (!patient.Phone || patient.Phone.length < 10 || patient.Phone.length > 15) {
-      alert("Phone must be between 10 and 15 characters.");
+    // בניית אובייקט עם רק השדות שהשתנו
+    const updatedFields = {};
+    let hasChanges = false;
+
+    // בדיקת שינויים בפרטים האישיים
+    if (patient.PatientName !== originalPatient.PatientName) {
+      if (!patient.PatientName || patient.PatientName.trim().length < 2) {
+        alert("Name must be at least 2 characters.");
+        return;
+      }
+      updatedFields.PatientName = patient.PatientName.trim();
+      hasChanges = true;
+    }
+
+    if (patient.Email !== originalPatient.Email) {
+      if (!patient.Email || !isValidEmail(patient.Email)) {
+        alert("Please enter a valid email address.");
+        return;
+      }
+      updatedFields.Email = patient.Email.trim();
+      hasChanges = true;
+    }
+
+    if (patient.Phone !== originalPatient.Phone) {
+      if (!patient.Phone || patient.Phone.length < 10 || patient.Phone.length > 15) {
+        alert("Phone must be between 10 and 15 characters.");
+        return;
+      }
+      updatedFields.Phone = patient.Phone.trim();
+      hasChanges = true;
+    }
+
+    // בדיקת שינויים בכתובת
+    const addressChanged = 
+      patient.Address.CityName !== originalPatient.Address.CityName ||
+      patient.Address.StreetName !== originalPatient.Address.StreetName ||
+      patient.Address.HouseNumber !== originalPatient.Address.HouseNumber ||
+      patient.Address.PostalCode !== originalPatient.Address.PostalCode;
+
+    if (addressChanged) {
+      // בדיקה אם יש לפחות שדה כתובת אחד מלא
+      const hasAddressData = patient.Address.CityName || patient.Address.StreetName || 
+                            patient.Address.HouseNumber || patient.Address.PostalCode;
+
+      if (hasAddressData) {
+        // אם יש נתוני כתובת, בדוק שכולם מלאים ותקינים
+        if (!patient.Address.CityName || patient.Address.CityName.trim().length < 2) {
+          alert("City name must be at least 2 characters.");
+          return;
+        }
+        
+        if (!patient.Address.StreetName || patient.Address.StreetName.trim().length < 2) {
+          alert("Street name must be at least 2 characters.");
+          return;
+        }
+        
+        if (!patient.Address.HouseNumber || patient.Address.HouseNumber < 1 || patient.Address.HouseNumber > 9999) {
+          alert("House number must be between 1 and 9999.");
+          return;
+        }
+        
+        if (!patient.Address.PostalCode || patient.Address.PostalCode.trim().length < 4 || patient.Address.PostalCode.trim().length > 10) {
+          alert("Postal code must be between 4 and 10 characters.");
+          return;
+        }
+
+        updatedFields.Address = {
+          CityName: patient.Address.CityName.trim(),
+          StreetName: patient.Address.StreetName.trim(),
+          HouseNumber: parseInt(patient.Address.HouseNumber),
+          PostalCode: patient.Address.PostalCode.trim()
+        };
+        hasChanges = true;
+      } else {
+        // אם אין נתוני כתובת כלל, אפשר לשלוח null כדי למחוק כתובת קיימת
+        updatedFields.Address = null;
+        hasChanges = true;
+      }
+    }
+
+    if (!hasChanges) {
+      alert("No changes detected.");
       return;
     }
 
-    if (!patient.PatientName || patient.PatientName.length < 2) {
-      alert("Name must be at least 2 characters.");
-      return;
-    }
-
-    if (!patient.Email || !isValidEmail(patient.Email)) {
-      alert("Please enter a valid email address.");
-      return;
-    }
-
-    // בדיקת שדות כתובת אם הוזנו
-    if (patient.Address && 
-        (patient.Address.CityName || patient.Address.StreetName || 
-         patient.Address.HouseNumber || patient.Address.PostalCode)) {
-      
-      if (!patient.Address.CityName || patient.Address.CityName.length < 2) {
-        alert("City name must be at least 2 characters.");
-        return;
-      }
-      
-      if (!patient.Address.StreetName || patient.Address.StreetName.length < 2) {
-        alert("Street name must be at least 2 characters.");
-        return;
-      }
-      
-      if (!patient.Address.HouseNumber || patient.Address.HouseNumber < 1 || patient.Address.HouseNumber > 9999) {
-        alert("House number must be between 1 and 9999.");
-        return;
-      }
-      
-      if (!patient.Address.PostalCode || patient.Address.PostalCode.length < 4 || patient.Address.PostalCode.length > 10) {
-        alert("Postal code must be between 4 and 10 characters.");
-        return;
-      }
-    }
+    // הוספת PatientKey תמיד
+    updatedFields.PatientKey = patient.PatientKey;
 
     setUpdating(true);
     try {
-      await updatePatient(patient);
+      await updatePatient(updatedFields);
       alert('Profile updated successfully!');
+      // עדכון הנתונים המקוריים
+      setOriginalPatient(JSON.parse(JSON.stringify(patient)));
     } catch (error) {
       handleApiError(error);
     } finally {
@@ -146,6 +198,10 @@ export default function PatientProfilePage() {
     }));
   };
 
+  const hasUnsavedChanges = () => {
+    return JSON.stringify(patient) !== JSON.stringify(originalPatient);
+  };
+
   return (
     <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
       <h2>My Profile</h2>
@@ -159,6 +215,9 @@ export default function PatientProfilePage() {
         backgroundColor: '#f9f9f9'
       }}>
         <h3>Personal Information</h3>
+        <p style={{ color: '#666', marginBottom: '15px', fontSize: '14px' }}>
+          Update only the fields you want to change. Leave others as they are.
+        </p>
         
         <div style={{ marginBottom: '15px' }}>
           <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
@@ -208,7 +267,7 @@ export default function PatientProfilePage() {
             }}
             value={patient.Phone || ''}
             onChange={(e) => setPatient({ ...patient, Phone: e.target.value })}
-            placeholder="Phone"
+            placeholder="Phone (10-15 characters)"
           />
         </div>
       </div>
@@ -222,6 +281,9 @@ export default function PatientProfilePage() {
         backgroundColor: '#f9f9f9'
       }}>
         <h3>Address</h3>
+        <p style={{ color: '#666', marginBottom: '15px', fontSize: '14px' }}>
+          Fill all address fields or leave all empty. Partial address updates are not allowed.
+        </p>
         
         <div style={{ marginBottom: '15px' }}>
           <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
@@ -299,20 +361,20 @@ export default function PatientProfilePage() {
 
       <button 
         onClick={handleUpdate}
-        disabled={updating}
+        disabled={updating || !hasUnsavedChanges()}
         style={{
-          backgroundColor: updating ? '#ccc' : '#007bff',
+          backgroundColor: updating ? '#ccc' : (!hasUnsavedChanges() ? '#6c757d' : '#007bff'),
           color: 'white',
           padding: '10px 20px',
           border: 'none',
           borderRadius: '4px',
-          cursor: updating ? 'not-allowed' : 'pointer',
+          cursor: (updating || !hasUnsavedChanges()) ? 'not-allowed' : 'pointer',
           fontSize: '16px',
           marginBottom: '30px',
           width: '100%'
         }}
       >
-        {updating ? 'Updating...' : 'Update Info'}
+        {updating ? 'Updating...' : (!hasUnsavedChanges() ? 'No Changes to Save' : 'Update Info')}
       </button>
 
       {/* Change Password Section */}
