@@ -14,5 +14,6 @@ namespace BLL.API
         IServiceProviderManagement ServiceProviderManagement { get; set; }
         IAppointmentManagement AppointmentManagement { get; set; }
         IAppointmentsSlotManagement AppointmentsSlotManagement { get; set; }
+        IBranchManagement BranchManagement { get; set; } // הוסף את זה
     }
 }

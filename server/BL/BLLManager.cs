@@ -13,7 +13,6 @@ namespace BL
         public IAppointmentService AppointmentService { get; set; }
         public IClinicServiceService ClinicServiceService { get; set; }
         public IPasswordService PasswordService { get; set; }
-        public IPatientService patientService { get; set; } // זה נראה כמו כפילות - כדאי לבדוק אם צריך
 
         // הוסף את השירותים החסרים שהקונטרולרים צריכים
         public IPatientsManagement PatientsManagement { get; set; }
@@ -21,6 +20,7 @@ namespace BL
         public IServiceProviderManagement ServiceProviderManagement { get; set; }
         public IAppointmentManagement AppointmentManagement { get; set; }
         public IAppointmentsSlotManagement AppointmentsSlotManagement { get; set; }
+        public IBranchManagement BranchManagement { get; set; } // הוסף את זה
 
         public BlManager()
         {
@@ -29,11 +29,12 @@ namespace BL
             IAppointmentManagement appointmentManagementDal = new AppointmentManagement(db);
             IPatientsManagement patientsManagementDal = new PatientsManagement(db);
             IAppointmentsSlotManagement appointmentsSlotManagementDal = new AppointmentsSlotManagement(db);
-            IBranchManagement branchManagementDal = new BranchManagement(db);
+            IBranchManagement branchManagementDal = new BranchManagement(db); // הוסף את זה
             IClinicServiceManagement clinicServiceManagementDal = new ClinicServiceManagement(db);
             IServiceProviderManagement serviceProviderManagementDal = new ServiceProviderManagement(db);
             IWorkHourManagement workHourManagementDal = new WorkHourManagement(db);
             IPasswordService passwordService = new PasswordService();
+
             AuthService = new AuthService(patientsManagementDal, passwordService);
             PatientService = new PatientService(
                 patientsManagementDal,
@@ -55,6 +56,7 @@ namespace BL
             ServiceProviderManagement = serviceProviderManagementDal;
             AppointmentManagement = appointmentManagementDal;
             AppointmentsSlotManagement = appointmentsSlotManagementDal;
+            BranchManagement = branchManagementDal; // הוסף את זה
         }
     }
 }
