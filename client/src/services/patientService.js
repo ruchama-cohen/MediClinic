@@ -6,9 +6,16 @@ export async function getPatient(patientKey) {
 }
 
 export async function updatePatient(updatedFields) {
-  // שלח רק את השדות שהשתנו
-  // השרת יטפל בעדכון רק של השדות שהתקבלו
-  return instance.put('/patient/update', updatedFields);
+  console.log('Sending update request with data:', updatedFields);
+  
+  try {
+    const response = await instance.put('/patient/update', updatedFields);
+    console.log('Update response:', response.data);
+    return response;
+  } catch (error) {
+    console.error('Update error:', error.response?.data || error.message);
+    throw error;
+  }
 }
 
 export async function changePassword({ patientKey, currentPassword, newPassword }) {

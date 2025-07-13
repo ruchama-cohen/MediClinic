@@ -136,6 +136,9 @@ export default function PatientProfilePage() {
     // הוספת PatientKey תמיד
     updatedFields.PatientKey = patient.PatientKey;
 
+    console.log('PatientKey being sent:', patient.PatientKey);
+    console.log('Full update data being sent:', updatedFields);
+
     setUpdating(true);
     try {
       await updatePatient(updatedFields);
@@ -143,6 +146,7 @@ export default function PatientProfilePage() {
       // עדכון הנתונים המקוריים
       setOriginalPatient(JSON.parse(JSON.stringify(patient)));
     } catch (error) {
+      console.error('Update failed:', error);
       handleApiError(error);
     } finally {
       setUpdating(false);
