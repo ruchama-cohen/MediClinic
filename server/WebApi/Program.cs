@@ -47,7 +47,7 @@ builder.Services.AddScoped<DB_Manager>();
 builder.Services.AddScoped<IBL, BlManager>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
-// רק השירותי DAL שהקונטרולרים צריכים ישירות
+// כל השירותי DAL שהקונטרולרים צריכים ישירות
 builder.Services.AddScoped<IPatientsManagement>(provider =>
 {
     var db = provider.GetRequiredService<DB_Manager>();
@@ -66,7 +66,6 @@ builder.Services.AddScoped<IServiceProviderManagement>(provider =>
     return new ServiceProviderManagement(db);
 });
 
-// 👇 הוסף את השירותים האלה:
 builder.Services.AddScoped<IAppointmentManagement>(provider =>
 {
     var db = provider.GetRequiredService<DB_Manager>();
@@ -77,6 +76,20 @@ builder.Services.AddScoped<IAppointmentsSlotManagement>(provider =>
 {
     var db = provider.GetRequiredService<DB_Manager>();
     return new AppointmentsSlotManagement(db);
+});
+
+// הוסף את BranchManagement
+builder.Services.AddScoped<IBranchManagement>(provider =>
+{
+    var db = provider.GetRequiredService<DB_Manager>();
+    return new BranchManagement(db);
+});
+
+// הוסף את AddressManagement
+builder.Services.AddScoped<IAddressManagement>(provider =>
+{
+    var db = provider.GetRequiredService<DB_Manager>();
+    return new AddressManagement(db);
 });
 
 builder.Services.AddScoped<IAppointmentService>(provider =>
@@ -98,9 +111,6 @@ builder.Services.AddCors(options =>
               .AllowCredentials(); // חשוב עבור JWT tokens
     });
 });
-
-
-
 
 builder.Services.AddLogging();
 builder.Services.AddMemoryCache();

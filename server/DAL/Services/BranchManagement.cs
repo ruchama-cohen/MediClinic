@@ -18,6 +18,7 @@ namespace DAL.Services
         {
             _context = context;
         }
+
         public async Task AddBranch(Branch branch)
         {
             await _context.Set<Branch>().AddAsync(branch);
@@ -36,24 +37,35 @@ namespace DAL.Services
 
         public async Task<List<Branch>> GetAllBranches()
         {
-            return await _context.Branches.ToListAsync();
+            return await _context.Branches
+                .Include(b => b.Address)
+                    .ThenInclude(a => a.City)
+                .Include(b => b.Address)
+                    .ThenInclude(a => a.Street)
+                .ToListAsync();
         }
 
         public async Task<List<Branch>> GetBranchesByCityID(int cityID)
         {
             return await _context.Branches
-                .Where(b => b.Address.City.CityId==cityID)
+                .Include(b => b.Address)
+                    .ThenInclude(a => a.City)
+                .Include(b => b.Address)
+                    .ThenInclude(a => a.Street)
+                .Where(b => b.Address.City.CityId == cityID)
                 .ToListAsync();
         }
 
         public async Task<List<Branch>> GetBranchesByServiceProviderKey(int doctorKey)
         {
             return await _context.Branches
-                  .Where(b => b.ServiceProviders.Any(sp => sp.ProviderKey== doctorKey))
-                  .ToListAsync();
-
+                .Include(b => b.Address)
+                    .ThenInclude(a => a.City)
+                .Include(b => b.Address)
+                    .ThenInclude(a => a.Street)
+                .Where(b => b.ServiceProviders.Any(sp => sp.ProviderKey == doctorKey))
+                .ToListAsync();
         }
-
 
         public async Task<bool> UpdateBranchDetails(Branch updatedBranch)
         {
@@ -67,7 +79,5 @@ namespace DAL.Services
             await _context.SaveChangesAsync();
             return true;
         }
-
-
     }
 }
