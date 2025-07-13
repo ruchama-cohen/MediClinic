@@ -47,6 +47,11 @@ export default function AppointmentBookingPage() {
       console.log('Cities response:', citiesRes);
       console.log('Time periods response:', timePeriodsRes);
       
+      // בדיקה נוספת
+      console.log('Raw services data:', servicesRes?.data);
+      console.log('Services array length:', servicesRes?.data?.length);
+      console.log('First service:', servicesRes?.data?.[0]);
+      
       setServices(servicesRes.data || []);
       setCities(citiesRes.data || []);
       setTimePeriods(timePeriodsRes.data || []);
@@ -189,8 +194,8 @@ export default function AppointmentBookingPage() {
           onChange={(e) => handleServiceChange(e.target.value)}
         >
           <option value="">-- Select Service --</option>
-          {services.map((service) => (
-            <option key={`service-${service.ServiceId}`} value={service.ServiceId}>
+          {services.map((service, index) => (
+            <option key={service.ServiceId || `service-${index}`} value={service.ServiceId}>
               {service.ServiceName}
             </option>
           ))}
@@ -228,8 +233,8 @@ export default function AppointmentBookingPage() {
                 onChange={(e) => setSelectedProvider(e.target.value)}
               >
                 <option value="">-- Any Provider --</option>
-                {providers.map((provider) => (
-                  <option key={`provider-${provider.ProviderKey}`} value={provider.ProviderKey}>
+                {providers.map((provider, index) => (
+                  <option key={provider.ProviderKey || `provider-${index}`} value={provider.ProviderKey}>
                     {provider.ProviderName}
                   </option>
                 ))}
@@ -252,8 +257,8 @@ export default function AppointmentBookingPage() {
                 onChange={(e) => setSelectedCity(e.target.value)}
               >
                 <option value="">-- Any City --</option>
-                {cities.map((city) => (
-                  <option key={`city-${city.CityId}`} value={city.CityName}>
+                {cities.map((city, index) => (
+                  <option key={city.CityId || `city-${index}`} value={city.CityName}>
                     {city.CityName}
                   </option>
                 ))}
@@ -276,8 +281,8 @@ export default function AppointmentBookingPage() {
                 onChange={(e) => setSelectedTimePeriod(e.target.value)}
               >
                 <option value="">-- Any Time --</option>
-                {timePeriods.map((period) => (
-                  <option key={`period-${period.Value}`} value={period.Value}>
+                {timePeriods.map((period, index) => (
+                  <option key={period.Value || `period-${index}`} value={period.Value}>
                     {period.Label}
                   </option>
                 ))}
@@ -350,9 +355,9 @@ export default function AppointmentBookingPage() {
             gap: '15px',
             marginTop: '20px'
           }}>
-            {availableSlots.map((slot) => (
+            {availableSlots.map((slot, index) => (
               <div 
-                key={`slot-${slot.SlotId}`}
+                key={slot.SlotId || `slot-${index}`}
                 style={{ 
                   border: '1px solid #ddd',
                   borderRadius: '8px',
