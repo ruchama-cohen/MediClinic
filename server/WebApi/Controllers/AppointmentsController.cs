@@ -1,5 +1,6 @@
 ﻿using BLL.API;
 using BLL.Exceptions;
+using DAL.API;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers
@@ -9,12 +10,206 @@ namespace WebAPI.Controllers
     public class AppointmentsController : ControllerBase
     {
         private readonly IAppointmentService _appointmentService;
+        private readonly IServiceProviderManagement _serviceProviderManagement;
+        private readonly IClinicServiceManagement _clinicServiceManagement;
+        private readonly IBranchManagement _branchManagement;
         private readonly ILogger<AppointmentsController> _logger;
 
         public AppointmentsController(IBL bl, ILogger<AppointmentsController> logger)
         {
             _appointmentService = bl.AppointmentService;
+            _serviceProviderManagement = bl.ServiceProviderManagement;
+            _clinicServiceManagement = bl.ClinicServiceManagement;
+            _branchManagement = bl.BranchManagement;
             _logger = logger;
+        }
+
+        [HttpGet("services")]
+        public async Task<IActionResult> GetAvailableServices()
+        {
+            try
+            {
+                var services = await _clinicServiceManagement.GetAllServices();
+                var availableServices = services
+                    .Where(s => !string.Equals(s.ServiceName, "Branch Manager", StringComparison.OrdinalIgnoreCase))
+                    .Select(s => new { ServiceId = s.ServiceId, ServiceName = s.ServiceName })
+                    .ToList();
+
+                return Ok(new { success = true, data = availableServices });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting available services");
+                return StatusCode(500, new { success = false, message = "Internal server error" });
+            }
+        }
+
+        [HttpGet("providers/{serviceId}")]
+        public async Task<IActionResult> GetProvidersByService(int serviceId)
+        {
+            try
+            {
+                var providers = await _serviceProviderManagement.GetAllServiceProvidersByServiceId(serviceId);
+                var activeProviders = providers
+                    .Where(p => p.IsActive)
+                    .Select(p => new {
+                        ProviderKey = p.ProviderKey,
+                        ProviderName = p.Name,
+                        ProviderId = p.ProviderId
+                    })
+                    .OrderBy(p => p.ProviderName)
+                    .ToList();
+
+                return Ok(new { success = true, data = activeProviders });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting providers for service {ServiceId}", serviceId);
+                return StatusCode(500, new { success = false, message = "Internal server error" });
+            }
+        }
+
+        [HttpGet("cities")]
+        public async Task<IActionResult> GetAvailableCities()
+        {
+            try
+            {
+                var branches = await _branchManagement.GetAllBranches();
+                var cities = branches
+                    .Where(b => b.Address?.City != null)
+                    .Select(b => new {
+                        CityId = b.Address.City.CityId,
+                        CityName = b.Address.City.Name
+                    })
+                    .Distinct()
+                    .OrderBy(c => c.CityName)
+                    .ToList();
+
+                return Ok(new { success = true, data = cities });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting available cities");
+                return StatusCode(500, new { success = false, message = "Internal server error" });
+            }
+        }
+
+        [HttpGet("time-periods")]
+        public IActionResult GetTimePeriods()
+        {
+            try
+            {
+                var timePeriods = new[]
+                {
+                    new { Value = "morning", Label = "Morning (06:00-12:00)", StartTime = "06:00", EndTime = "12:00" },
+                    new { Value = "afternoon", Label = "Afternoon (12:00-18:00)", StartTime = "12:00", EndTime = "18:00" },
+                    new { Value = "evening", Label = "Evening (18:00-22:00)", StartTime = "18:00", EndTime = "22:00" }
+                };
+
+                return Ok(new { success = true, data = timePeriods });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting time periods");
+                return StatusCode(500, new { success = false, message = "Internal server error" });
+            }
+        }
+
+        [HttpPost("search")]
+        public async Task<IActionResult> SearchAvailableSlots([FromBody] SearchSlotsRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { success = false, message = "Invalid search parameters" });
+                }
+
+                // קבלת כל הסלוטים לשירות
+                var allSlots = await _appointmentService.GetAvailableSlotsByServiceAsync(request.ServiceId);
+
+                // סינון לפי ספק שירות אם נבחר
+                if (request.ProviderKey.HasValue)
+                {
+                    allSlots = allSlots.Where(s => s.ProviderKey == request.ProviderKey.Value).ToList();
+                }
+
+                // סינון לפי עיר אם נבחרה
+                if (!string.IsNullOrEmpty(request.CityName))
+                {
+                    allSlots = allSlots.Where(s =>
+                        s.Branch?.Address?.City?.Name?.Equals(request.CityName, StringComparison.OrdinalIgnoreCase) == true
+                    ).ToList();
+                }
+
+                // סינון לפי זמן אם נבחר
+                if (!string.IsNullOrEmpty(request.TimePeriod))
+                {
+                    allSlots = FilterByTimePeriod(allSlots, request.TimePeriod);
+                }
+
+                // סינון לפי תאריך אם נבחר
+                if (request.PreferredDate.HasValue)
+                {
+                    allSlots = allSlots.Where(s => s.SlotDate == request.PreferredDate.Value).ToList();
+                }
+
+                // מיון לפי תאריך ושעה
+                var sortedSlots = allSlots
+                    .OrderBy(s => s.SlotDate)
+                    .ThenBy(s => s.SlotStart)
+                    .Take(50) // הגבלה ל-50 תוצאות
+                    .Select(s => new
+                    {
+                        SlotId = s.SlotId,
+                        SlotDate = s.SlotDate,
+                        SlotStart = s.SlotStart,
+                        SlotEnd = s.SlotEnd,
+                        ProviderName = s.ProviderKeyNavigation?.Name ?? "Unknown",
+                        BranchName = s.Branch?.BranchName ?? "Unknown",
+                        CityName = s.Branch?.Address?.City?.Name ?? "Unknown",
+                        Address = s.Branch?.Address != null ?
+                            $"{s.Branch.Address.Street?.Name} {s.Branch.Address.HouseNumber}, {s.Branch.Address.City?.Name}" :
+                            "Unknown Address"
+                    })
+                    .ToList();
+
+                return Ok(new
+                {
+                    success = true,
+                    data = sortedSlots,
+                    count = sortedSlots.Count,
+                    message = sortedSlots.Count == 0 ? "No available slots found for the selected criteria" : null
+                });
+            }
+            catch (InvalidAppointmentDataException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (ServiceNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (NoAvailableSlotsException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching available slots");
+                return StatusCode(500, new { success = false, message = "Internal server error" });
+            }
+        }
+
+        private List<DAL.Models.AppointmentsSlot> FilterByTimePeriod(List<DAL.Models.AppointmentsSlot> slots, string timePeriod)
+        {
+            return timePeriod.ToLower() switch
+            {
+                "morning" => slots.Where(s => s.SlotStart >= TimeOnly.Parse("06:00") && s.SlotStart < TimeOnly.Parse("12:00")).ToList(),
+                "afternoon" => slots.Where(s => s.SlotStart >= TimeOnly.Parse("12:00") && s.SlotStart < TimeOnly.Parse("18:00")).ToList(),
+                "evening" => slots.Where(s => s.SlotStart >= TimeOnly.Parse("18:00") && s.SlotStart < TimeOnly.Parse("22:00")).ToList(),
+                _ => slots
+            };
         }
 
         [HttpGet("byProvider/{doctorName}")]
@@ -118,7 +313,6 @@ namespace WebAPI.Controllers
         {
             try
             {
-                // המרה של PatientKey למחרוזת כדי לעבוד עם הפונקציה המעודכנת
                 await _appointmentService.BookAppointmentAsync(slotId, request.PatientKey.ToString());
                 return Ok(new { success = true, message = "Appointment booked successfully" });
             }
@@ -218,7 +412,6 @@ namespace WebAPI.Controllers
             }
         }
 
-        // הוסף endpoint חדש לעבודה עם PatientKey
         [HttpGet("byUserKey/{patientKey}")]
         public async Task<IActionResult> GetAppointmentsByUserKey(int patientKey)
         {
@@ -286,6 +479,15 @@ namespace WebAPI.Controllers
         public class BookAppointmentRequest
         {
             public int PatientKey { get; set; }
+        }
+
+        public class SearchSlotsRequest
+        {
+            public int ServiceId { get; set; }
+            public int? ProviderKey { get; set; }
+            public string? CityName { get; set; }
+            public string? TimePeriod { get; set; } // morning, afternoon, evening
+            public DateOnly? PreferredDate { get; set; }
         }
     }
 }

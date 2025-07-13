@@ -33,6 +33,13 @@ namespace DAL.Services
         public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByCityAndServiceName(int serviceId, string cityName)
         {
             return await _context.AppointmentsSlots
+                .Include(a => a.ProviderKeyNavigation)
+                .Include(a => a.Branch)
+                    .ThenInclude(b => b.Address)
+                        .ThenInclude(a => a.City)
+                .Include(a => a.Branch)
+                    .ThenInclude(b => b.Address)
+                        .ThenInclude(a => a.Street)
                 .Where(a =>
                     a.ProviderKeyNavigation != null &&
                     a.ProviderKeyNavigation.ServiceId == serviceId &&
@@ -50,9 +57,30 @@ namespace DAL.Services
                 .ToListAsync();
         }
 
+        public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByServiceTypeWithDetails(int serviceType)
+        {
+            return await _context.AppointmentsSlots
+                .Include(a => a.ProviderKeyNavigation)
+                .Include(a => a.Branch)
+                    .ThenInclude(b => b.Address)
+                        .ThenInclude(a => a.City)
+                .Include(a => a.Branch)
+                    .ThenInclude(b => b.Address)
+                        .ThenInclude(a => a.Street)
+                .Where(a => a.ProviderKeyNavigation != null && a.ProviderKeyNavigation.ServiceId == serviceType)
+                .ToListAsync();
+        }
+
         public async Task<List<AppointmentsSlot>?> GetAppointmentSlotByServiceProviderIDAndCityID(int serviceProviderKey, int cityID)
         {
             return await _context.AppointmentsSlots
+                .Include(a => a.ProviderKeyNavigation)
+                .Include(a => a.Branch)
+                    .ThenInclude(b => b.Address)
+                        .ThenInclude(a => a.City)
+                .Include(a => a.Branch)
+                    .ThenInclude(b => b.Address)
+                        .ThenInclude(a => a.Street)
                 .Where(a => a.ProviderKeyNavigation != null &&
                             a.ProviderKeyNavigation.ProviderKey == serviceProviderKey &&
                             a.Branch != null &&
@@ -64,7 +92,14 @@ namespace DAL.Services
         public async Task<List<AppointmentsSlot>> GetAppointmentsByServiceProviderIDAndBranchID(int serviceProviderKey, int branchID)
         {
             return await _context.AppointmentsSlots
-            .Where(a => a.ProviderKeyNavigation != null &&
+                .Include(a => a.ProviderKeyNavigation)
+                .Include(a => a.Branch)
+                    .ThenInclude(b => b.Address)
+                        .ThenInclude(a => a.City)
+                .Include(a => a.Branch)
+                    .ThenInclude(b => b.Address)
+                        .ThenInclude(a => a.Street)
+                .Where(a => a.ProviderKeyNavigation != null &&
                             a.ProviderKeyNavigation.ProviderKey == serviceProviderKey &&
                             a.Branch != null &&
                              a.Branch.BranchId == branchID)
@@ -74,6 +109,13 @@ namespace DAL.Services
         public async Task<List<AppointmentsSlot>?> GetAppointmentsSlotsByServiceProviderID(int serviceProviderKey)
         {
             return await _context.AppointmentsSlots
+                .Include(a => a.ProviderKeyNavigation)
+                .Include(a => a.Branch)
+                    .ThenInclude(b => b.Address)
+                        .ThenInclude(a => a.City)
+                .Include(a => a.Branch)
+                    .ThenInclude(b => b.Address)
+                        .ThenInclude(a => a.Street)
                 .Where(a => a.ProviderKeyNavigation != null && a.ProviderKeyNavigation.ProviderKey == serviceProviderKey)
                 .ToListAsync();
         }
@@ -104,6 +146,12 @@ namespace DAL.Services
         {
             return await _context.AppointmentsSlots
                 .Include(a => a.ProviderKeyNavigation)
+                .Include(a => a.Branch)
+                    .ThenInclude(b => b.Address)
+                        .ThenInclude(a => a.City)
+                .Include(a => a.Branch)
+                    .ThenInclude(b => b.Address)
+                        .ThenInclude(a => a.Street)
                 .FirstOrDefaultAsync(a => a.SlotId == slotId);
         }
 
