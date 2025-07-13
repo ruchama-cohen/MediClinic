@@ -37,14 +37,17 @@ namespace BLL.Services
 
             if (newPassword.Length < 4 || newPassword.Length > 15)
                 throw new InvalidAppointmentDataException("Password must be between 4 and 15 characters");
+
             var patient = await _patientManagement.GetPatientById(patientId);
             if (patient == null)
                 throw new PatientNotFoundException(patientId);
 
             if (string.IsNullOrEmpty(patient.PatientPassword))
                 throw new InvalidAppointmentDataException("No password set for this patient");
+
             if (!_passwordService.VerifyPassword(oldPassword, patient.PatientPassword))
                 throw new InvalidAppointmentDataException("Current password is incorrect");
+
             patient.PatientPassword = _passwordService.HashPassword(newPassword);
             bool result = await _patientManagement.UpdatePatient(patient);
 
@@ -59,20 +62,31 @@ namespace BLL.Services
             if (string.IsNullOrWhiteSpace(patientId))
                 throw new InvalidAppointmentDataException("Patient ID is required");
 
-            if (string.IsNullOrWhiteSpace(name) || name.Length < 2)
-                throw new InvalidAppointmentDataException("Name must be at least 2 characters");
-
-            if (string.IsNullOrWhiteSpace(email) || !IsValidEmail(email))
-                throw new InvalidAppointmentDataException("Valid email is required");
-
-            if (string.IsNullOrWhiteSpace(phone) || phone.Length < 10)
-                throw new InvalidAppointmentDataException("Valid phone number is required");
             var existingPatient = await _patientManagement.GetPatientById(patientId);
             if (existingPatient == null)
                 throw new PatientNotFoundException(patientId);
-            existingPatient.PatientName = name.Trim();
-            existingPatient.Email = email.Trim();
-            existingPatient.Phone = phone.Trim();
+
+            // עדכון רק השדות שהתקבלו (לא null ולא ריקים)
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                if (name.Length < 2)
+                    throw new InvalidAppointmentDataException("Name must be at least 2 characters");
+                existingPatient.PatientName = name.Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                if (!IsValidEmail(email))
+                    throw new InvalidAppointmentDataException("Valid email is required");
+                existingPatient.Email = email.Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(phone))
+            {
+                if (phone.Length < 10)
+                    throw new InvalidAppointmentDataException("Valid phone number is required");
+                existingPatient.Phone = phone.Trim();
+            }
 
             bool result = await _patientManagement.UpdatePatient(existingPatient);
             if (!result)
@@ -89,6 +103,7 @@ namespace BLL.Services
             var patient = await _patientManagement.GetPatientById(patientId);
             if (patient == null)
                 throw new PatientNotFoundException(patientId);
+
             Address? address = null;
             if (patient.AddressId > 0)
             {
@@ -140,7 +155,9 @@ namespace BLL.Services
             var existingPatient = await _patientManagement.GetPatientById(model.PatientId);
             if (existingPatient == null)
                 throw new PatientNotFoundException(model.PatientId);
+
             int addressId = existingPatient.AddressId;
+
             if (model.address != null && model.address.City != null && model.address.Street != null)
             {
                 addressId = await _addressManagement.CreateFullAddressAsync(
@@ -180,9 +197,30 @@ namespace BLL.Services
             var existingPatient = await _patientManagement.GetPatientById(patientId);
             if (existingPatient == null)
                 throw new PatientNotFoundException(patientId);
-            existingPatient.PatientName = name?.Trim() ?? existingPatient.PatientName;
-            existingPatient.Email = email?.Trim() ?? existingPatient.Email;
-            existingPatient.Phone = phone?.Trim() ?? existingPatient.Phone;
+
+            // עדכון רק השדות שהתקבלו
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                if (name.Length < 2)
+                    throw new InvalidAppointmentDataException("Name must be at least 2 characters");
+                existingPatient.PatientName = name.Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                if (!IsValidEmail(email))
+                    throw new InvalidAppointmentDataException("Valid email is required");
+                existingPatient.Email = email.Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(phone))
+            {
+                if (phone.Length < 10)
+                    throw new InvalidAppointmentDataException("Valid phone number is required");
+                existingPatient.Phone = phone.Trim();
+            }
+
+            // טיפול בכתובת
             if (!string.IsNullOrWhiteSpace(cityName) &&
                 !string.IsNullOrWhiteSpace(streetName) &&
                 houseNumber.HasValue && houseNumber.Value > 0 &&
