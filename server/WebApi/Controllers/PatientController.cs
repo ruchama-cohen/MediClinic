@@ -19,49 +19,6 @@ namespace WebAPI.Controllers
         }
 
         /// <summary>
-        /// קבלת פרטי משתמש עם כתובת לפי PatientId
-        /// </summary>
-        [HttpGet("{patientId}")]
-        public async Task<IActionResult> GetPatient(string patientId)
-        {
-            try
-            {
-                var patient = await _patientService.GetPatientByIdString(patientId);
-
-                var response = new PatientResponse
-                {
-                    PatientKey = patient.PatientKey,
-                    PatientId = patient.PatientId,
-                    PatientName = patient.PatientName,
-                    Email = patient.Email,
-                    Phone = patient.Phone,
-                    Address = patient.address != null ? new AddressResponse
-                    {
-                        CityName = patient.address.City?.Name ?? "",
-                        StreetName = patient.address.Street?.Name ?? "",
-                        HouseNumber = patient.address.HouseNumber,
-                        PostalCode = patient.address.PostalCode
-                    } : null
-                };
-
-                return Ok(response);
-            }
-            catch (PatientNotFoundException ex)
-            {
-                return NotFound(new { success = false, message = ex.Message });
-            }
-            catch (InvalidAppointmentDataException ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting patient {PatientId}", patientId);
-                return StatusCode(500, new { success = false, message = "Internal server error" });
-            }
-        }
-
-        /// <summary>
         /// קבלת פרטי משתמש עם כתובת לפי PatientKey
         /// </summary>
         [HttpGet("by-key/{patientKey}")]
@@ -210,6 +167,49 @@ namespace WebAPI.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error changing password for patient {PatientKey}", request.PatientKey);
+                return StatusCode(500, new { success = false, message = "Internal server error" });
+            }
+        }
+
+        /// <summary>
+        /// קבלת פרטי משתמש עם כתובת לפי PatientId
+        /// </summary>
+        [HttpGet("{patientId}")]
+        public async Task<IActionResult> GetPatient(string patientId)
+        {
+            try
+            {
+                var patient = await _patientService.GetPatientByIdString(patientId);
+
+                var response = new PatientResponse
+                {
+                    PatientKey = patient.PatientKey,
+                    PatientId = patient.PatientId,
+                    PatientName = patient.PatientName,
+                    Email = patient.Email,
+                    Phone = patient.Phone,
+                    Address = patient.address != null ? new AddressResponse
+                    {
+                        CityName = patient.address.City?.Name ?? "",
+                        StreetName = patient.address.Street?.Name ?? "",
+                        HouseNumber = patient.address.HouseNumber,
+                        PostalCode = patient.address.PostalCode
+                    } : null
+                };
+
+                return Ok(response);
+            }
+            catch (PatientNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (InvalidAppointmentDataException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting patient {PatientId}", patientId);
                 return StatusCode(500, new { success = false, message = "Internal server error" });
             }
         }

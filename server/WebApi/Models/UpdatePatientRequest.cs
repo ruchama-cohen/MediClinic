@@ -5,45 +5,39 @@ namespace WebAPI.Models
     public class UpdatePatientRequest
     {
         [Required(ErrorMessage = "Patient Key is required")]
-        public int PatientKey { get; set; } // שונה מ-PatientId ל-PatientKey
+        public int PatientKey { get; set; }
 
-        [Required(ErrorMessage = "Name is required")]
+        // הסרנו את Required מהשדות הבאים כדי לאפשר עדכונים חלקיים
         [StringLength(100, MinimumLength = 2, ErrorMessage = "Name must be between 2 and 100 characters")]
-        public string PatientName { get; set; } = string.Empty;
+        public string? PatientName { get; set; }
 
-        [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid email format")]
-        public string Email { get; set; } = string.Empty;
+        public string? Email { get; set; }
 
-        [Required(ErrorMessage = "Phone is required")]
         [StringLength(15, MinimumLength = 10, ErrorMessage = "Phone must be between 10 and 15 characters")]
-        public string Phone { get; set; } = string.Empty;
+        public string? Phone { get; set; }
 
         public AddressRequest? Address { get; set; }
     }
 
     public class AddressRequest
     {
-        [Required(ErrorMessage = "City name is required")]
         [StringLength(100, MinimumLength = 2, ErrorMessage = "City name must be between 2 and 100 characters")]
-        public string CityName { get; set; } = string.Empty;
+        public string? CityName { get; set; }
 
-        [Required(ErrorMessage = "Street name is required")]
         [StringLength(100, MinimumLength = 2, ErrorMessage = "Street name must be between 2 and 100 characters")]
-        public string StreetName { get; set; } = string.Empty;
+        public string? StreetName { get; set; }
 
-        [Required(ErrorMessage = "House number is required")]
         [Range(1, 9999, ErrorMessage = "House number must be between 1 and 9999")]
-        public int HouseNumber { get; set; }
+        public int? HouseNumber { get; set; }
 
-        [Required(ErrorMessage = "Postal code is required")]
         [StringLength(10, MinimumLength = 4, ErrorMessage = "Postal code must be between 4 and 10 characters")]
-        public string PostalCode { get; set; } = string.Empty;
+        public string? PostalCode { get; set; }
     }
 
     public class PatientResponse
     {
-        public int PatientKey { get; set; } // הוסף PatientKey
+        public int PatientKey { get; set; }
         public string PatientId { get; set; } = string.Empty;
         public string PatientName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
@@ -63,7 +57,7 @@ namespace WebAPI.Models
     public class ChangePasswordRequest
     {
         [Required(ErrorMessage = "Patient Key is required")]
-        public int PatientKey { get; set; } // שונה מ-PatientId ל-PatientKey
+        public int PatientKey { get; set; }
 
         [Required(ErrorMessage = "Current password is required")]
         public string CurrentPassword { get; set; } = string.Empty;
@@ -80,18 +74,15 @@ namespace WebAPI.Models
     public class UpdateContactInfoRequest
     {
         [Required(ErrorMessage = "Patient Key is required")]
-        public int PatientKey { get; set; } // שונה מ-PatientId ל-PatientKey
+        public int PatientKey { get; set; }
 
-        [Required(ErrorMessage = "Name is required")]
         [StringLength(100, MinimumLength = 2)]
-        public string PatientName { get; set; } = string.Empty;
+        public string? PatientName { get; set; }
 
-        [Required(ErrorMessage = "Email is required")]
         [EmailAddress]
-        public string Email { get; set; } = string.Empty;
+        public string? Email { get; set; }
 
-        [Required(ErrorMessage = "Phone is required")]
         [StringLength(15, MinimumLength = 10)]
-        public string Phone { get; set; } = string.Empty;
+        public string? Phone { get; set; }
     }
 }

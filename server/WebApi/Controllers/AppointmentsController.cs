@@ -118,7 +118,7 @@ namespace WebAPI.Controllers
         {
             try
             {
-                // המרה של PatientKey למחרוזת כדי לעבוד עם הפונקציה הקיימת
+                // המרה של PatientKey למחרוזת כדי לעבוד עם הפונקציה המעודכנת
                 await _appointmentService.BookAppointmentAsync(slotId, request.PatientKey.ToString());
                 return Ok(new { success = true, message = "Appointment booked successfully" });
             }
