@@ -35,18 +35,26 @@ export default function AppointmentBookingPage() {
   const loadInitialData = async () => {
     try {
       setLoading(true);
+      console.log('Starting to load initial data...');
+      
       const [servicesRes, citiesRes, timePeriodsRes] = await Promise.all([
         getAvailableServices(),
         getAvailableCities(),
         getTimePeriods()
       ]);
       
+      console.log('Services response:', servicesRes);
+      console.log('Cities response:', citiesRes);
+      console.log('Time periods response:', timePeriodsRes);
+      
       setServices(servicesRes.data || []);
       setCities(citiesRes.data || []);
       setTimePeriods(timePeriodsRes.data || []);
+      
+      console.log('Services set:', servicesRes.data || []);
     } catch (error) {
       console.error('Error loading initial data:', error);
-      alert('Error loading page data. Please refresh.');
+      alert(`Error loading page data: ${error.message}. Please check console for details.`);
     } finally {
       setLoading(false);
     }
@@ -182,7 +190,7 @@ export default function AppointmentBookingPage() {
         >
           <option value="">-- Select Service --</option>
           {services.map((service) => (
-            <option key={service.ServiceId} value={service.ServiceId}>
+            <option key={`service-${service.ServiceId}`} value={service.ServiceId}>
               {service.ServiceName}
             </option>
           ))}
@@ -221,7 +229,7 @@ export default function AppointmentBookingPage() {
               >
                 <option value="">-- Any Provider --</option>
                 {providers.map((provider) => (
-                  <option key={provider.ProviderKey} value={provider.ProviderKey}>
+                  <option key={`provider-${provider.ProviderKey}`} value={provider.ProviderKey}>
                     {provider.ProviderName}
                   </option>
                 ))}
@@ -245,7 +253,7 @@ export default function AppointmentBookingPage() {
               >
                 <option value="">-- Any City --</option>
                 {cities.map((city) => (
-                  <option key={city.CityId} value={city.CityName}>
+                  <option key={`city-${city.CityId}`} value={city.CityName}>
                     {city.CityName}
                   </option>
                 ))}
@@ -269,7 +277,7 @@ export default function AppointmentBookingPage() {
               >
                 <option value="">-- Any Time --</option>
                 {timePeriods.map((period) => (
-                  <option key={period.Value} value={period.Value}>
+                  <option key={`period-${period.Value}`} value={period.Value}>
                     {period.Label}
                   </option>
                 ))}
@@ -344,7 +352,7 @@ export default function AppointmentBookingPage() {
           }}>
             {availableSlots.map((slot) => (
               <div 
-                key={slot.SlotId} 
+                key={`slot-${slot.SlotId}`}
                 style={{ 
                   border: '1px solid #ddd',
                   borderRadius: '8px',
