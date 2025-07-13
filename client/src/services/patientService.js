@@ -9,6 +9,7 @@ export async function updatePatient(updatedFields) {
   console.log('Sending update request with data:', updatedFields);
   
   try {
+    // חזרה לנתיב המקורי - עכשיו זה אמור לעבוד אחרי תיקון הקונטרולר
     const response = await instance.put('/patient/update', updatedFields);
     console.log('Update response:', response.data);
     return response;
