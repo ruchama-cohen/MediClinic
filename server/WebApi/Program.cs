@@ -43,11 +43,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+// רישום כל השירותים
 builder.Services.AddScoped<DB_Manager>();
 builder.Services.AddScoped<IBL, BlManager>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
-// כל השירותי DAL שהקונטרולרים צריכים ישירות
+// DAL Services
 builder.Services.AddScoped<IPatientsManagement>(provider =>
 {
     var db = provider.GetRequiredService<DB_Manager>();
@@ -78,18 +79,33 @@ builder.Services.AddScoped<IAppointmentsSlotManagement>(provider =>
     return new AppointmentsSlotManagement(db);
 });
 
-// הוסף את BranchManagement
 builder.Services.AddScoped<IBranchManagement>(provider =>
 {
     var db = provider.GetRequiredService<DB_Manager>();
     return new BranchManagement(db);
 });
 
-// הוסף את AddressManagement
 builder.Services.AddScoped<IAddressManagement>(provider =>
 {
     var db = provider.GetRequiredService<DB_Manager>();
     return new AddressManagement(db);
+});
+
+// BLL Services
+builder.Services.AddScoped<IPasswordService, PasswordService>();
+
+builder.Services.AddScoped<IPatientService>(provider =>
+{
+    var patientsManagement = provider.GetRequiredService<IPatientsManagement>();
+    var addressManagement = provider.GetRequiredService<IAddressManagement>();
+    var passwordService = provider.GetRequiredService<IPasswordService>();
+    return new PatientService(patientsManagement, addressManagement, passwordService);
+});
+
+builder.Services.AddScoped<ICityStreetService>(provider =>
+{
+    var addressManagement = provider.GetRequiredService<IAddressManagement>();
+    return new CityStreetService(addressManagement);
 });
 
 builder.Services.AddScoped<IAppointmentService>(provider =>
@@ -105,10 +121,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://localhost:3001") // כתובות ה-React app
+        policy.WithOrigins("http://localhost:3000", "http://localhost:3001")
               .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowCredentials(); // חשוב עבור JWT tokens
+              .AllowCredentials();
     });
 });
 

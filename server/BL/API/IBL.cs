@@ -9,11 +9,15 @@ namespace BLL.API
         IAppointmentService AppointmentService { get; set; }
         IClinicServiceService ClinicServiceService { get; set; }
         IPasswordService PasswordService { get; set; }
+        ICityStreetService CityStreetService { get; set; } // הוספנו
+
+        // DAL Services
         IPatientsManagement PatientsManagement { get; set; }
         IClinicServiceManagement ClinicServiceManagement { get; set; }
         IServiceProviderManagement ServiceProviderManagement { get; set; }
         IAppointmentManagement AppointmentManagement { get; set; }
         IAppointmentsSlotManagement AppointmentsSlotManagement { get; set; }
-        IBranchManagement BranchManagement { get; set; } // הוסף את זה
+        IBranchManagement BranchManagement { get; set; }
+        IAddressManagement AddressManagement { get; set; }
     }
 }

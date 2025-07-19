@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DAL.Models;
+﻿using DAL.Models;
 
 namespace DAL.API
 {
@@ -17,5 +12,9 @@ namespace DAL.API
         Task<Street> GetOrCreateStreetAsync(string streetName, int cityId);
         Task<Address?> FindExistingAddressAsync(int cityId, int streetId, int houseNumber, string postalCode);
         Task<int> CreateFullAddressAsync(string cityName, string streetName, int houseNumber, string postalCode);
+
+        // הוספנו פונקציות חדשות
+        Task<List<City>> GetAllCitiesWithAddressesAsync();
+        Task<List<Street>> GetStreetsByCityIdAsync(int cityId);
     }
 }

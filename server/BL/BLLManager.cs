@@ -13,14 +13,16 @@ namespace BL
         public IAppointmentService AppointmentService { get; set; }
         public IClinicServiceService ClinicServiceService { get; set; }
         public IPasswordService PasswordService { get; set; }
+        public ICityStreetService CityStreetService { get; set; }
 
-        // הוסף את השירותים החסרים שהקונטרולרים צריכים
+        // DAL Services
         public IPatientsManagement PatientsManagement { get; set; }
         public IClinicServiceManagement ClinicServiceManagement { get; set; }
         public IServiceProviderManagement ServiceProviderManagement { get; set; }
         public IAppointmentManagement AppointmentManagement { get; set; }
         public IAppointmentsSlotManagement AppointmentsSlotManagement { get; set; }
-        public IBranchManagement BranchManagement { get; set; } // הוסף את זה
+        public IBranchManagement BranchManagement { get; set; }
+        public IAddressManagement AddressManagement { get; set; }
 
         public BlManager()
         {
@@ -29,10 +31,9 @@ namespace BL
             IAppointmentManagement appointmentManagementDal = new AppointmentManagement(db);
             IPatientsManagement patientsManagementDal = new PatientsManagement(db);
             IAppointmentsSlotManagement appointmentsSlotManagementDal = new AppointmentsSlotManagement(db);
-            IBranchManagement branchManagementDal = new BranchManagement(db); // הוסף את זה
+            IBranchManagement branchManagementDal = new BranchManagement(db);
             IClinicServiceManagement clinicServiceManagementDal = new ClinicServiceManagement(db);
             IServiceProviderManagement serviceProviderManagementDal = new ServiceProviderManagement(db);
-            IWorkHourManagement workHourManagementDal = new WorkHourManagement(db);
             IPasswordService passwordService = new PasswordService();
 
             AuthService = new AuthService(patientsManagementDal, passwordService);
@@ -50,13 +51,16 @@ namespace BL
             ClinicServiceService = new ClinicServiceService(
                 clinicServiceManagementDal
             );
+            CityStreetService = new CityStreetService(addressManagementDal);
+
             PasswordService = passwordService;
             PatientsManagement = patientsManagementDal;
             ClinicServiceManagement = clinicServiceManagementDal;
             ServiceProviderManagement = serviceProviderManagementDal;
             AppointmentManagement = appointmentManagementDal;
             AppointmentsSlotManagement = appointmentsSlotManagementDal;
-            BranchManagement = branchManagementDal; // הוסף את זה
+            BranchManagement = branchManagementDal;
+            AddressManagement = addressManagementDal;
         }
     }
 }

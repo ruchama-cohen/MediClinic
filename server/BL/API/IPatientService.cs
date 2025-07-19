@@ -1,15 +1,15 @@
-﻿using BLL.Models;
+﻿
+using BLL.Models;
 
 namespace BLL.API
 {
     public interface IPatientService
     {
-        Task<bool> ChangePassword(string patientId, string oldPassword, string newPassword);
-        Task<bool> UpdatePatientDetails(string patientId, string name, string email, string phone);
-        Task<PatientModel?> GetPatientByIdString(string patientId);
+        Task<bool> ChangePassword(int patientKey, string oldPassword, string newPassword);
         Task<PatientModel?> GetPatientByKey(int patientKey);
-        Task<bool> UpdatePatient(PatientModel model);
-        Task<bool> UpdatePatientWithAddress(string patientId, string name, string email, string phone,
-           string? cityName = null, string? streetName = null, int? houseNumber = null, string? postalCode = null);
+        Task<bool> UpdatePatientPartial(int patientKey, string? name = null, string? email = null, string? phone = null,
+            int? cityId = null, int? streetId = null, int? houseNumber = null, string? postalCode = null);
+       
+        // הסרנו פונקציות לא נחוצות
     }
 }

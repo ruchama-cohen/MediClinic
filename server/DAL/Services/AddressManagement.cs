@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DAL.API;
+﻿using DAL.API;
 using DAL.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -104,8 +99,10 @@ namespace DAL.Services
             var city = await GetOrCreateCityAsync(cityName);
             var street = await GetOrCreateStreetAsync(streetName, city.CityId);
             var existingAddress = await FindExistingAddressAsync(city.CityId, street.StreetId, houseNumber, postalCode);
+
             if (existingAddress != null)
                 return existingAddress.AddressId;
+
             var newAddress = new Address
             {
                 CityId = city.CityId,
@@ -118,6 +115,22 @@ namespace DAL.Services
             await _context.SaveChangesAsync();
 
             return newAddress.AddressId;
+        }
+
+        public async Task<List<City>> GetAllCitiesWithAddressesAsync()
+        {
+            return await _context.Cities
+                .Where(c => c.Addresses.Any()) // רק ערים שיש להן כתובות
+                .OrderBy(c => c.Name)
+                .ToListAsync();
+        }
+
+        public async Task<List<Street>> GetStreetsByCityIdAsync(int cityId)
+        {
+            return await _context.Streets
+                .Where(s => s.CityId == cityId && s.Addresses.Any()) // רק רחובות שיש להם כתובות
+                .OrderBy(s => s.Name)
+                .ToListAsync();
         }
     }
 }

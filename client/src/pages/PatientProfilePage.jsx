@@ -1,241 +1,349 @@
 import { useEffect, useState } from 'react';
-import { getPatient, updatePatient, changePassword } from '../services/patientService';
+import { getPatient, updatePatient, changePassword, getCities, getStreetsByCity } from '../services/patientService';
 import { getPatientKeyFromToken } from '../utils/authUtils';
 import { handleApiError } from '../utils/errorUtil';
 
 export default function PatientProfilePage() {
-  const [patient, setPatient] = useState(null);
-  const [originalPatient, setOriginalPatient] = useState(null);
-  const [newPassword, setNewPassword] = useState('');
+  // נתוני המטופל
+  const [patientKey, setPatientKey] = useState(null);
+  const [patientName, setPatientName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+ 
+  // כתובת
+  const [cityId, setCityId] = useState('');
+  const [streetId, setStreetId] = useState('');
+  const [houseNumber, setHouseNumber] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+ 
+  // נתונים מקוריים להשוואה
+  const [originalData, setOriginalData] = useState({});
+ 
+  // רשימות
+  const [cities, setCities] = useState([]);
+  const [streets, setStreets] = useState([]);
+ 
+  // סיסמה
   const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+ 
+  // מצבי טעינה
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+  const [loadingStreets, setLoadingStreets] = useState(false);
 
   useEffect(() => {
-    const patientKey = getPatientKeyFromToken();
-    if (patientKey) {
-      getPatient(patientKey)
-        .then((data) => {
-          const patientData = {
-            ...data,
-            PatientKey: data.PatientKey || patientKey,
-            // וידוא שיש כתובת ברירת מחדל
-            Address: data.Address || {
-              CityName: '',
-              StreetName: '',
-              HouseNumber: '',
-              PostalCode: ''
-            }
-          };
-          setPatient(patientData);
-          setOriginalPatient(JSON.parse(JSON.stringify(patientData))); // עותק עמוק
-        })
-        .catch(handleApiError)
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    loadInitialData();
   }, []);
 
-  if (loading) return <div style={{ padding: '20px' }}>Loading...</div>;
-  if (!patient) return <div style={{ padding: '20px' }}>Patient not found</div>;
-
-  const handleUpdate = async () => {
-    if (!patient.PatientKey) {
-      alert("Patient Key is missing.");
+  const loadInitialData = async () => {
+    const patientKeyFromToken = getPatientKeyFromToken();
+    if (!patientKeyFromToken) {
+      console.error('❌ No patient key found');
+      setLoading(false);
       return;
     }
 
-    // בניית אובייקט עם רק השדות שהשתנו
-    const updatedFields = {};
-    let hasChanges = false;
-
-    // בדיקת שינויים בפרטים האישיים
-    if (patient.PatientName !== originalPatient.PatientName) {
-      if (!patient.PatientName || patient.PatientName.trim().length < 2) {
-        alert("Name must be at least 2 characters.");
-        return;
+    try {
+      console.log('🚀 Loading data for patient:', patientKeyFromToken);
+     
+      const [patientData, citiesData] = await Promise.all([
+        getPatient(patientKeyFromToken),
+        getCities()
+      ]);
+     
+      console.log('✅ Patient data:', patientData);
+      console.log('✅ Cities data:', citiesData);
+     
+      // שמירת נתוני המטופל
+      setPatientKey(patientData.patientKey);
+      setPatientName(patientData.PatientName || '');
+      setEmail(patientData.Email || '');
+      setPhone(patientData.Phone || '');
+     
+      // שמירת נתוני כתובת
+      if (patientData.Address) {
+        setCityId(patientData.Address.CityId || '');
+        setStreetId(patientData.Address.StreetId || '');
+        setHouseNumber(patientData.Address.HouseNumber || '');
+        setPostalCode(patientData.Address.PostalCode || '');
+       
+        // טעינת רחובות אם יש עיר
+        if (patientData.Address.CityId) {
+          const streetsData = await getStreetsByCity(patientData.Address.CityId);
+          setStreets(streetsData.data || []);
+        }
       }
-      updatedFields.PatientName = patient.PatientName.trim();
-      hasChanges = true;
+     
+      setCities(citiesData.data || []);
+     
+      // שמירת נתונים מקוריים להשוואה
+      setOriginalData({
+        PatientName: patientData.PatientName || '',
+        Email: patientData.Email || '',
+        Phone: patientData.Phone || '',
+        CityId: patientData.Address?.CityId || '',
+        StreetId: patientData.Address?.StreetId || '',
+        HouseNumber: patientData.Address?.HouseNumber || '',
+        PostalCode: patientData.Address?.PostalCode || ''
+      });
+     
+      console.log('✅ Original data saved:', {
+        PatientName: patientData.PatientName || '',
+        Email: patientData.Email || '',
+        Phone: patientData.Phone || '',
+        CityId: patientData.Address?.CityId || '',
+        StreetId: patientData.Address?.StreetId || '',
+        HouseNumber: patientData.Address?.HouseNumber || '',
+        PostalCode: patientData.Address?.PostalCode || ''
+      });
+     
+    } catch (error) {
+      console.error('❌ Error loading data:', error);
+      handleApiError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCityChange = async (newCityId) => {
+    console.log('🏙️ City changed to:', newCityId);
+    setCityId(newCityId);
+    setStreetId(''); // איפוס רחוב
+   
+    if (newCityId) {
+      setLoadingStreets(true);
+      try {
+        const streetsData = await getStreetsByCity(newCityId);
+        setStreets(streetsData.data || []);
+      } catch (error) {
+        console.error('❌ Error loading streets:', error);
+        setStreets([]);
+      } finally {
+        setLoadingStreets(false);
+      }
+    } else {
+      setStreets([]);
+    }
+  };
+
+  const getCurrentData = () => {
+    return {
+      PatientName: patientName.trim(),
+      Email: email.trim(),
+      Phone: phone.trim(),
+      CityId: cityId,
+      StreetId: streetId,
+      HouseNumber: houseNumber,
+      PostalCode: postalCode.trim()
+    };
+  };
+
+  const hasChanges = () => {
+    const current = getCurrentData();
+    const changed = {
+      name: current.PatientName !== originalData.PatientName,
+      email: current.Email !== originalData.Email,
+      phone: current.Phone !== originalData.Phone,
+      city: current.CityId !== originalData.CityId,
+      street: current.StreetId !== originalData.StreetId,
+      house: current.HouseNumber !== originalData.HouseNumber,
+      postal: current.PostalCode !== originalData.PostalCode
+    };
+   
+    const hasAnyChange = Object.values(changed).some(Boolean);
+    console.log('🔍 Changes detected:', changed, 'Overall:', hasAnyChange);
+    return hasAnyChange;
+  };
+
+  const handleUpdate = async () => {
+    console.log('🚀 Starting update...');
+   
+    if (!patientKey) {
+      alert('Patient key missing');
+      return;
     }
 
-    if (patient.Email !== originalPatient.Email) {
-      if (!patient.Email || !isValidEmail(patient.Email)) {
-        alert("Please enter a valid email address.");
+    const current = getCurrentData();
+    console.log('📊 Current data:', current);
+    console.log('📊 Original data:', originalData);
+
+    // בניית אובייקט עדכון
+    const updateData = { PatientKey: patientKey };
+    let hasAnyChange = false;
+
+    // בדיקת שינויים בפרטים אישיים
+    if (current.PatientName !== originalData.PatientName) {
+      if (!current.PatientName || current.PatientName.length < 2) {
+        alert('Name must be at least 2 characters');
         return;
       }
-      updatedFields.Email = patient.Email.trim();
-      hasChanges = true;
+      updateData.PatientName = current.PatientName;
+      hasAnyChange = true;
+      console.log('📝 Name will be updated:', current.PatientName);
     }
 
-    if (patient.Phone !== originalPatient.Phone) {
-      if (!patient.Phone || patient.Phone.length < 10 || patient.Phone.length > 15) {
-        alert("Phone must be between 10 and 15 characters.");
+    if (current.Email !== originalData.Email) {
+      if (!current.Email || !isValidEmail(current.Email)) {
+        alert('Please enter a valid email');
         return;
       }
-      updatedFields.Phone = patient.Phone.trim();
-      hasChanges = true;
+      updateData.Email = current.Email;
+      hasAnyChange = true;
+      console.log('📧 Email will be updated:', current.Email);
+    }
+
+    if (current.Phone !== originalData.Phone) {
+      if (!current.Phone || current.Phone.length < 10) {
+        alert('Phone must be at least 10 characters');
+        return;
+      }
+      updateData.Phone = current.Phone;
+      hasAnyChange = true;
+      console.log('📞 Phone will be updated:', current.Phone);
     }
 
     // בדיקת שינויים בכתובת
-    const addressChanged = 
-      patient.Address.CityName !== originalPatient.Address.CityName ||
-      patient.Address.StreetName !== originalPatient.Address.StreetName ||
-      patient.Address.HouseNumber !== originalPatient.Address.HouseNumber ||
-      patient.Address.PostalCode !== originalPatient.Address.PostalCode;
+    const addressChanged =
+      current.CityId !== originalData.CityId ||
+      current.StreetId !== originalData.StreetId ||
+      current.HouseNumber !== originalData.HouseNumber ||
+      current.PostalCode !== originalData.PostalCode;
 
     if (addressChanged) {
-      // בדיקה אם יש לפחות שדה כתובת אחד מלא
-      const hasAddressData = patient.Address.CityName || patient.Address.StreetName || 
-                            patient.Address.HouseNumber || patient.Address.PostalCode;
-
-      if (hasAddressData) {
-        // אם יש נתוני כתובת, בדוק שכולם מלאים ותקינים
-        if (!patient.Address.CityName || patient.Address.CityName.trim().length < 2) {
-          alert("City name must be at least 2 characters.");
+      console.log('🏠 Address changed detected');
+     
+      // אם יש נתוני כתובת - חייבים להיות כולם
+      if (current.CityId || current.StreetId || current.HouseNumber || current.PostalCode) {
+        if (!current.CityId || !current.StreetId || !current.HouseNumber || !current.PostalCode) {
+          alert('Please fill all address fields or leave all empty');
           return;
         }
-        
-        if (!patient.Address.StreetName || patient.Address.StreetName.trim().length < 2) {
-          alert("Street name must be at least 2 characters.");
+       
+        if (current.HouseNumber < 1 || current.HouseNumber > 9999) {
+          alert('House number must be between 1 and 9999');
           return;
         }
-        
-        if (!patient.Address.HouseNumber || patient.Address.HouseNumber < 1 || patient.Address.HouseNumber > 9999) {
-          alert("House number must be between 1 and 9999.");
-          return;
-        }
-        
-        if (!patient.Address.PostalCode || patient.Address.PostalCode.trim().length < 4 || patient.Address.PostalCode.trim().length > 10) {
-          alert("Postal code must be between 4 and 10 characters.");
+       
+        if (current.PostalCode.length < 4 || current.PostalCode.length > 10) {
+          alert('Postal code must be between 4 and 10 characters');
           return;
         }
 
-        updatedFields.Address = {
-          CityName: patient.Address.CityName.trim(),
-          StreetName: patient.Address.StreetName.trim(),
-          HouseNumber: parseInt(patient.Address.HouseNumber),
-          PostalCode: patient.Address.PostalCode.trim()
+        updateData.Address = {
+          CityId: parseInt(current.CityId),
+          StreetId: parseInt(current.StreetId),
+          HouseNumber: parseInt(current.HouseNumber),
+          PostalCode: current.PostalCode
         };
-        hasChanges = true;
-      } else {
-        // אם אין נתוני כתובת כלל, אפשר לשלוח null כדי למחוק כתובת קיימת
-        updatedFields.Address = null;
-        hasChanges = true;
+        hasAnyChange = true;
+        console.log('🏠 Address will be updated:', updateData.Address);
       }
     }
 
-    if (!hasChanges) {
-      alert("No changes detected.");
+    if (!hasAnyChange) {
+      alert('No changes detected');
       return;
     }
 
-    // הוספת PatientKey תמיד
-    updatedFields.PatientKey = patient.PatientKey;
-
-    console.log('PatientKey being sent:', patient.PatientKey);
-    console.log('Full update data being sent:', updatedFields);
-
+    console.log('📤 Sending update:', updateData);
+   
     setUpdating(true);
     try {
-      await updatePatient(updatedFields);
-      alert('Profile updated successfully!');
+      const response = await updatePatient(updateData);
+      console.log('✅ Update successful:', response);
+     
       // עדכון הנתונים המקוריים
-      setOriginalPatient(JSON.parse(JSON.stringify(patient)));
+      setOriginalData(current);
+      alert('Profile updated successfully!');
+     
     } catch (error) {
-      console.error('Update failed:', error);
-      handleApiError(error);
+      console.error('❌ Update failed:', error);
+      const errorMsg = error.response?.data?.message || error.message || 'Update failed';
+      alert(`Update failed: ${errorMsg}`);
     } finally {
       setUpdating(false);
     }
   };
 
   const handleChangePassword = async () => {
-    if (!currentPassword) {
-      alert("Please enter your current password.");
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      alert('Please fill all password fields');
       return;
     }
 
-    if (!newPassword || newPassword.length < 4 || newPassword.length > 15) {
-      alert("New password must be between 4 and 15 characters.");
+    if (newPassword.length < 4 || newPassword.length > 15) {
+      alert('Password must be between 4 and 15 characters');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      alert("New password and confirmation do not match.");
+      alert('Passwords do not match');
       return;
     }
 
     setChangingPassword(true);
     try {
       await changePassword({
-        patientKey: patient.PatientKey,
-        currentPassword,
-        newPassword,
+        PatientKey: patientKey,
+        CurrentPassword: currentPassword,
+        NewPassword: newPassword,
+        ConfirmPassword: confirmPassword
       });
+     
       alert('Password changed successfully!');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (error) {
-      handleApiError(error);
+      console.error('❌ Password change failed:', error);
+      const errorMsg = error.response?.data?.message || error.message || 'Password change failed';
+      alert(`Password change failed: ${errorMsg}`);
     } finally {
       setChangingPassword(false);
     }
   };
 
   const isValidEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
-  const handleAddressChange = (field, value) => {
-    setPatient(prev => ({
-      ...prev,
-      Address: {
-        ...prev.Address,
-        [field]: value
-      }
-    }));
-  };
-
-  const hasUnsavedChanges = () => {
-    return JSON.stringify(patient) !== JSON.stringify(originalPatient);
-  };
+  if (loading) {
+    return <div style={{ padding: '20px' }}>Loading...</div>;
+  }
 
   return (
     <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
       <h2>My Profile</h2>
-      
-      {/* Personal Information Section */}
-      <div style={{ 
-        border: '1px solid #ddd', 
-        padding: '20px', 
-        marginBottom: '20px', 
+     
+      {/* Personal Information */}
+      <div style={{
+        border: '1px solid #ddd',
+        padding: '20px',
+        marginBottom: '20px',
         borderRadius: '8px',
         backgroundColor: '#f9f9f9'
       }}>
         <h3>Personal Information</h3>
-        <p style={{ color: '#666', marginBottom: '15px', fontSize: '14px' }}>
-          Update only the fields you want to change. Leave others as they are.
-        </p>
-        
+       
         <div style={{ marginBottom: '15px' }}>
           <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
             Full Name:
           </label>
           <input
-            style={{ 
-              width: '100%', 
-              padding: '8px', 
-              borderRadius: '4px', 
-              border: '1px solid #ddd' 
+            style={{
+              width: '100%',
+              padding: '8px',
+              borderRadius: '4px',
+              border: '1px solid #ddd'
             }}
-            value={patient.PatientName || ''}
-            onChange={(e) => setPatient({ ...patient, PatientName: e.target.value })}
+            value={patientName}
+            onChange={(e) => {
+              console.log('📝 Name changed to:', e.target.value);
+              setPatientName(e.target.value);
+            }}
             placeholder="Full Name"
           />
         </div>
@@ -245,15 +353,18 @@ export default function PatientProfilePage() {
             Email:
           </label>
           <input
-            style={{ 
-              width: '100%', 
-              padding: '8px', 
-              borderRadius: '4px', 
-              border: '1px solid #ddd' 
+            style={{
+              width: '100%',
+              padding: '8px',
+              borderRadius: '4px',
+              border: '1px solid #ddd'
             }}
             type="email"
-            value={patient.Email || ''}
-            onChange={(e) => setPatient({ ...patient, Email: e.target.value })}
+            value={email}
+            onChange={(e) => {
+              console.log('📧 Email changed to:', e.target.value);
+              setEmail(e.target.value);
+            }}
             placeholder="Email"
           />
         </div>
@@ -263,83 +374,103 @@ export default function PatientProfilePage() {
             Phone:
           </label>
           <input
-            style={{ 
-              width: '100%', 
-              padding: '8px', 
-              borderRadius: '4px', 
-              border: '1px solid #ddd' 
+            style={{
+              width: '100%',
+              padding: '8px',
+              borderRadius: '4px',
+              border: '1px solid #ddd'
             }}
-            value={patient.Phone || ''}
-            onChange={(e) => setPatient({ ...patient, Phone: e.target.value })}
-            placeholder="Phone (10-15 characters)"
+            value={phone}
+            onChange={(e) => {
+              console.log('📞 Phone changed to:', e.target.value);
+              setPhone(e.target.value);
+            }}
+            placeholder="Phone"
           />
         </div>
       </div>
 
-      {/* Address Section */}
-      <div style={{ 
-        border: '1px solid #ddd', 
-        padding: '20px', 
-        marginBottom: '20px', 
+      {/* Address */}
+      <div style={{
+        border: '1px solid #ddd',
+        padding: '20px',
+        marginBottom: '20px',
         borderRadius: '8px',
         backgroundColor: '#f9f9f9'
       }}>
         <h3>Address</h3>
-        <p style={{ color: '#666', marginBottom: '15px', fontSize: '14px' }}>
-          Fill all address fields or leave all empty. Partial address updates are not allowed.
-        </p>
-        
+       
         <div style={{ marginBottom: '15px' }}>
           <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
             City:
           </label>
-          <input
-            style={{ 
-              width: '100%', 
-              padding: '8px', 
-              borderRadius: '4px', 
-              border: '1px solid #ddd' 
+          <select
+            style={{
+              width: '100%',
+              padding: '8px',
+              borderRadius: '4px',
+              border: '1px solid #ddd'
             }}
-            value={patient.Address?.CityName || ''}
-            onChange={(e) => handleAddressChange('CityName', e.target.value)}
-            placeholder="City"
-          />
+            value={cityId}
+            onChange={(e) => handleCityChange(e.target.value)}
+          >
+            <option value="">-- Select City --</option>
+            {cities.map((city, index) => (
+              <option key={`city-${city.CityId}-${index}`} value={city.CityId}>
+                {city.Name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div style={{ marginBottom: '15px' }}>
           <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
             Street:
           </label>
-          <input
-            style={{ 
-              width: '100%', 
-              padding: '8px', 
-              borderRadius: '4px', 
-              border: '1px solid #ddd' 
+          <select
+            style={{
+              width: '100%',
+              padding: '8px',
+              borderRadius: '4px',
+              border: '1px solid #ddd'
             }}
-            value={patient.Address?.StreetName || ''}
-            onChange={(e) => handleAddressChange('StreetName', e.target.value)}
-            placeholder="Street"
-          />
+            value={streetId}
+            onChange={(e) => {
+              console.log('🛣️ Street changed to:', e.target.value);
+              setStreetId(e.target.value);
+            }}
+            disabled={!cityId || loadingStreets}
+          >
+            <option value="">-- Select Street --</option>
+            {streets.map((street, index) => (
+              <option key={`street-${street.StreetId}-${index}`} value={street.StreetId}>
+                {street.Name}
+              </option>
+            ))}
+          </select>
+          {loadingStreets && <div style={{ fontSize: '12px', color: '#666' }}>Loading streets...</div>}
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+        <div style={{ display: 'flex', gap: '10px' }}>
           <div style={{ flex: 1 }}>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
               House Number:
             </label>
             <input
-              style={{ 
-                width: '100%', 
-                padding: '8px', 
-                borderRadius: '4px', 
-                border: '1px solid #ddd' 
+              style={{
+                width: '100%',
+                padding: '8px',
+                borderRadius: '4px',
+                border: '1px solid #ddd'
               }}
               type="number"
               min="1"
               max="9999"
-              value={patient.Address?.HouseNumber || ''}
-              onChange={(e) => handleAddressChange('HouseNumber', parseInt(e.target.value) || '')}
+              value={houseNumber}
+              onChange={(e) => {
+                console.log('🏠 House number changed to:', e.target.value);
+                setHouseNumber(e.target.value);
+              }}
               placeholder="House Number"
             />
           </div>
@@ -349,57 +480,57 @@ export default function PatientProfilePage() {
               Postal Code:
             </label>
             <input
-              style={{ 
-                width: '100%', 
-                padding: '8px', 
-                borderRadius: '4px', 
-                border: '1px solid #ddd' 
+              style={{
+                width: '100%',
+                padding: '8px',
+                borderRadius: '4px',
+                border: '1px solid #ddd'
               }}
-              value={patient.Address?.PostalCode || ''}
-              onChange={(e) => handleAddressChange('PostalCode', e.target.value)}
+              value={postalCode}
+              onChange={(e) => {
+                console.log('📮 Postal code changed to:', e.target.value);
+                setPostalCode(e.target.value);
+              }}
               placeholder="Postal Code"
             />
           </div>
         </div>
       </div>
 
-      <button 
+      <button
         onClick={handleUpdate}
-        disabled={updating || !hasUnsavedChanges()}
+        disabled={updating || !hasChanges()}
         style={{
-          backgroundColor: updating ? '#ccc' : (!hasUnsavedChanges() ? '#6c757d' : '#007bff'),
+          backgroundColor: updating ? '#ccc' : (!hasChanges() ? '#6c757d' : '#007bff'),
           color: 'white',
           padding: '10px 20px',
           border: 'none',
           borderRadius: '4px',
-          cursor: (updating || !hasUnsavedChanges()) ? 'not-allowed' : 'pointer',
+          cursor: (updating || !hasChanges()) ? 'not-allowed' : 'pointer',
           fontSize: '16px',
           marginBottom: '30px',
           width: '100%'
         }}
       >
-        {updating ? 'Updating...' : (!hasUnsavedChanges() ? 'No Changes to Save' : 'Update Info')}
+        {updating ? 'Updating...' : (!hasChanges() ? 'No Changes to Save' : 'Update Info')}
       </button>
 
-      {/* Change Password Section */}
-      <div style={{ 
-        border: '1px solid #ddd', 
-        padding: '20px', 
+      {/* Password Change */}
+      <div style={{
+        border: '1px solid #ddd',
+        padding: '20px',
         borderRadius: '8px',
         backgroundColor: '#f9f9f9'
       }}>
         <h3>Change Password</h3>
-        
+       
         <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-            Current Password:
-          </label>
           <input
-            style={{ 
-              width: '100%', 
-              padding: '8px', 
-              borderRadius: '4px', 
-              border: '1px solid #ddd' 
+            style={{
+              width: '100%',
+              padding: '8px',
+              borderRadius: '4px',
+              border: '1px solid #ddd'
             }}
             type="password"
             placeholder="Current Password"
@@ -409,15 +540,12 @@ export default function PatientProfilePage() {
         </div>
 
         <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-            New Password:
-          </label>
           <input
-            style={{ 
-              width: '100%', 
-              padding: '8px', 
-              borderRadius: '4px', 
-              border: '1px solid #ddd' 
+            style={{
+              width: '100%',
+              padding: '8px',
+              borderRadius: '4px',
+              border: '1px solid #ddd'
             }}
             type="password"
             placeholder="New Password (4-15 characters)"
@@ -427,15 +555,12 @@ export default function PatientProfilePage() {
         </div>
 
         <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-            Confirm New Password:
-          </label>
           <input
-            style={{ 
-              width: '100%', 
-              padding: '8px', 
-              borderRadius: '4px', 
-              border: '1px solid #ddd' 
+            style={{
+              width: '100%',
+              padding: '8px',
+              borderRadius: '4px',
+              border: '1px solid #ddd'
             }}
             type="password"
             placeholder="Confirm New Password"
@@ -444,7 +569,7 @@ export default function PatientProfilePage() {
           />
         </div>
 
-        <button 
+        <button
           onClick={handleChangePassword}
           disabled={changingPassword}
           style={{
