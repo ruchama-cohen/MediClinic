@@ -13,6 +13,7 @@ namespace WebAPI.Controllers
         private readonly IServiceProviderManagement _serviceProviderManagement;
         private readonly IClinicServiceManagement _clinicServiceManagement;
         private readonly IBranchManagement _branchManagement;
+        private readonly IAppointmentsSlotManagement _appointmentsSlotManagement; // הוסף את זה
         private readonly ILogger<AppointmentsController> _logger;
 
         public AppointmentsController(IBL bl, ILogger<AppointmentsController> logger)
@@ -21,7 +22,136 @@ namespace WebAPI.Controllers
             _serviceProviderManagement = bl.ServiceProviderManagement;
             _clinicServiceManagement = bl.ClinicServiceManagement;
             _branchManagement = bl.BranchManagement;
+            _appointmentsSlotManagement = bl.AppointmentsSlotManagement; // הוסף את זה
             _logger = logger;
+        }
+
+        [HttpPost("search")]
+        public async Task<IActionResult> SearchAvailableSlots([FromBody] SearchSlotsRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { success = false, message = "Invalid search parameters" });
+                }
+
+                // קבלת כל הסלוטים לשירות עם כל הפרטים הנדרשים
+                var allSlots = await _appointmentsSlotManagement.GetAppointmentSlotByServiceTypeWithDetails(request.ServiceId);
+
+                if (allSlots == null || allSlots.Count == 0)
+                {
+                    return Ok(new
+                    {
+                        success = true,
+                        data = new List<object>(),
+                        count = 0,
+                        message = "No slots found for this service"
+                    });
+                }
+
+                // סינון רק תורים פנויים ועתידיים
+                var availableSlots = allSlots
+                    .Where(s => !s.IsBooked && s.SlotDate >= DateOnly.FromDateTime(DateTime.Now))
+                    .ToList();
+
+                _logger.LogInformation($"Found {availableSlots.Count} available slots out of {allSlots.Count} total slots");
+
+                // סינון לפי ספק שירות אם נבחר
+                if (request.ProviderKey.HasValue)
+                {
+                    availableSlots = availableSlots.Where(s => s.ProviderKey == request.ProviderKey.Value).ToList();
+                    _logger.LogInformation($"After provider filter: {availableSlots.Count} slots");
+                }
+
+                // סינון לפי עיר אם נבחרה
+                if (!string.IsNullOrEmpty(request.CityName))
+                {
+                    availableSlots = availableSlots.Where(s =>
+                        s.Branch?.Address?.City?.Name?.Equals(request.CityName, StringComparison.OrdinalIgnoreCase) == true
+                    ).ToList();
+                    _logger.LogInformation($"After city filter: {availableSlots.Count} slots");
+                }
+
+                // סינון לפי זמן אם נבחר
+                if (!string.IsNullOrEmpty(request.TimePeriod))
+                {
+                    availableSlots = FilterByTimePeriod(availableSlots, request.TimePeriod);
+                    _logger.LogInformation($"After time period filter: {availableSlots.Count} slots");
+                }
+
+                // סינון לפי תאריך אם נבחר
+                if (request.PreferredDate.HasValue)
+                {
+                    availableSlots = availableSlots.Where(s => s.SlotDate == request.PreferredDate.Value).ToList();
+                    _logger.LogInformation($"After date filter: {availableSlots.Count} slots");
+                }
+
+                // מיון לפי תאריך ושעה
+                var sortedSlots = availableSlots
+                    .OrderBy(s => s.SlotDate)
+                    .ThenBy(s => s.SlotStart)
+                    .Take(50) // הגבלה ל-50 תוצאות
+                    .Select(s => new
+                    {
+                        SlotId = s.SlotId,
+                        SlotDate = s.SlotDate, // עכשיו הconverter יטפל בזה
+                        SlotStart = s.SlotStart, // עכשיו הconverter יטפל בזה
+                        SlotEnd = s.SlotEnd, // עכשיו הconverter יטפל בזה
+                        ProviderName = s.ProviderKeyNavigation?.Name ?? "Unknown Provider",
+                        BranchName = s.Branch?.BranchName ?? "Unknown Branch",
+                        CityName = s.Branch?.Address?.City?.Name ?? "Unknown City",
+                        Address = s.Branch?.Address != null ?
+                            $"{s.Branch.Address.Street?.Name ?? "Unknown Street"} {s.Branch.Address.HouseNumber}, {s.Branch.Address.City?.Name ?? "Unknown City"}" :
+                            "Unknown Address"
+                    })
+                    .ToList();
+
+                return Ok(new
+                {
+                    success = true,
+                    data = sortedSlots,
+                    count = sortedSlots.Count,
+                    message = sortedSlots.Count == 0 ? "No available slots found for the selected criteria" : null
+                });
+            }
+            catch (InvalidAppointmentDataException ex)
+            {
+                _logger.LogWarning(ex, "Invalid appointment data in search");
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (ServiceNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Service not found in search");
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (NoAvailableSlotsException ex)
+            {
+                _logger.LogWarning(ex, "No available slots found");
+                return Ok(new
+                {
+                    success = true,
+                    data = new List<object>(),
+                    count = 0,
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching available slots");
+                return StatusCode(500, new { success = false, message = "Internal server error" });
+            }
+        }
+
+        private List<DAL.Models.AppointmentsSlot> FilterByTimePeriod(List<DAL.Models.AppointmentsSlot> slots, string timePeriod)
+        {
+            return timePeriod.ToLower() switch
+            {
+                "morning" => slots.Where(s => s.SlotStart >= TimeOnly.Parse("06:00") && s.SlotStart < TimeOnly.Parse("12:00")).ToList(),
+                "afternoon" => slots.Where(s => s.SlotStart >= TimeOnly.Parse("12:00") && s.SlotStart < TimeOnly.Parse("18:00")).ToList(),
+                "evening" => slots.Where(s => s.SlotStart >= TimeOnly.Parse("18:00") && s.SlotStart < TimeOnly.Parse("22:00")).ToList(),
+                _ => slots
+            };
         }
 
         [HttpGet("services")]
@@ -115,101 +245,173 @@ namespace WebAPI.Controllers
             }
         }
 
-        [HttpPost("search")]
-        public async Task<IActionResult> SearchAvailableSlots([FromBody] SearchSlotsRequest request)
+        [HttpPost("book/{slotId}")]
+        public async Task<IActionResult> BookAppointment(int slotId, [FromBody] BookAppointmentRequest request)
         {
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new { success = false, message = "Invalid search parameters" });
-                }
-
-                // קבלת כל הסלוטים לשירות
-                var allSlots = await _appointmentService.GetAvailableSlotsByServiceAsync(request.ServiceId);
-
-                // סינון לפי ספק שירות אם נבחר
-                if (request.ProviderKey.HasValue)
-                {
-                    allSlots = allSlots.Where(s => s.ProviderKey == request.ProviderKey.Value).ToList();
-                }
-
-                // סינון לפי עיר אם נבחרה
-                if (!string.IsNullOrEmpty(request.CityName))
-                {
-                    allSlots = allSlots.Where(s =>
-                        s.Branch?.Address?.City?.Name?.Equals(request.CityName, StringComparison.OrdinalIgnoreCase) == true
-                    ).ToList();
-                }
-
-                // סינון לפי זמן אם נבחר
-                if (!string.IsNullOrEmpty(request.TimePeriod))
-                {
-                    allSlots = FilterByTimePeriod(allSlots, request.TimePeriod);
-                }
-
-                // סינון לפי תאריך אם נבחר
-                if (request.PreferredDate.HasValue)
-                {
-                    allSlots = allSlots.Where(s => s.SlotDate == request.PreferredDate.Value).ToList();
-                }
-
-                // מיון לפי תאריך ושעה
-                var sortedSlots = allSlots
-                    .OrderBy(s => s.SlotDate)
-                    .ThenBy(s => s.SlotStart)
-                    .Take(50) // הגבלה ל-50 תוצאות
-                    .Select(s => new
-                    {
-                        SlotId = s.SlotId,
-                        SlotDate = s.SlotDate,
-                        SlotStart = s.SlotStart,
-                        SlotEnd = s.SlotEnd,
-                        ProviderName = s.ProviderKeyNavigation?.Name ?? "Unknown",
-                        BranchName = s.Branch?.BranchName ?? "Unknown",
-                        CityName = s.Branch?.Address?.City?.Name ?? "Unknown",
-                        Address = s.Branch?.Address != null ?
-                            $"{s.Branch.Address.Street?.Name} {s.Branch.Address.HouseNumber}, {s.Branch.Address.City?.Name}" :
-                            "Unknown Address"
-                    })
-                    .ToList();
-
-                return Ok(new
-                {
-                    success = true,
-                    data = sortedSlots,
-                    count = sortedSlots.Count,
-                    message = sortedSlots.Count == 0 ? "No available slots found for the selected criteria" : null
-                });
+                await _appointmentService.BookAppointmentAsync(slotId, request.PatientKey.ToString());
+                return Ok(new { success = true, message = "Appointment booked successfully" });
             }
             catch (InvalidAppointmentDataException ex)
             {
                 return BadRequest(new { success = false, message = ex.Message });
             }
-            catch (ServiceNotFoundException ex)
+            catch (PatientNotFoundException ex)
             {
                 return NotFound(new { success = false, message = ex.Message });
             }
-            catch (NoAvailableSlotsException ex)
+            catch (SlotNotFoundException ex)
             {
                 return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (SlotAlreadyBookedException ex)
+            {
+                return Conflict(new { success = false, message = ex.Message });
+            }
+            catch (TimeConflictException ex)
+            {
+                return Conflict(new { success = false, message = ex.Message });
+            }
+            catch (PastAppointmentException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (DoctorNotActiveException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (DatabaseException ex)
+            {
+                _logger.LogError(ex, "Database error booking appointment - SlotId: {SlotId}, PatientKey: {PatientKey}", slotId, request.PatientKey);
+                return StatusCode(500, new { success = false, message = "Database error occurred" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error searching available slots");
+                _logger.LogError(ex, "Error booking appointment - SlotId: {SlotId}, PatientKey: {PatientKey}", slotId, request.PatientKey);
                 return StatusCode(500, new { success = false, message = "Internal server error" });
             }
         }
 
-        private List<DAL.Models.AppointmentsSlot> FilterByTimePeriod(List<DAL.Models.AppointmentsSlot> slots, string timePeriod)
+        // שאר המתודות נשארות כפי שהן...
+        [HttpDelete("{appointmentId}")]
+        public async Task<IActionResult> CancelAppointment(int appointmentId)
         {
-            return timePeriod.ToLower() switch
+            try
             {
-                "morning" => slots.Where(s => s.SlotStart >= TimeOnly.Parse("06:00") && s.SlotStart < TimeOnly.Parse("12:00")).ToList(),
-                "afternoon" => slots.Where(s => s.SlotStart >= TimeOnly.Parse("12:00") && s.SlotStart < TimeOnly.Parse("18:00")).ToList(),
-                "evening" => slots.Where(s => s.SlotStart >= TimeOnly.Parse("18:00") && s.SlotStart < TimeOnly.Parse("22:00")).ToList(),
-                _ => slots
-            };
+                await _appointmentService.CancelAppointmentAsync(appointmentId);
+                return Ok(new { success = true, message = "Appointment cancelled successfully" });
+            }
+            catch (InvalidAppointmentDataException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (AppointmentNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (DatabaseException ex)
+            {
+                _logger.LogError(ex, "Database error cancelling appointment: {AppointmentId}", appointmentId);
+                return StatusCode(500, new { success = false, message = "Database error occurred" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cancelling appointment: {AppointmentId}", appointmentId);
+                return StatusCode(500, new { success = false, message = "Internal server error" });
+            }
+        }
+
+        [HttpGet("byUserKey/{patientKey}")]
+        public async Task<IActionResult> GetAppointmentsByUserKey(int patientKey)
+        {
+            try
+            {
+                var appointments = await _appointmentService.GetAppointmentsByPatientIdAsync(patientKey);
+                return Ok(new { success = true, data = appointments, count = appointments.Count });
+            }
+            catch (InvalidAppointmentDataException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (PatientNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (DatabaseException ex)
+            {
+                _logger.LogError(ex, "Database error getting appointments for patient key: {PatientKey}", patientKey);
+                return StatusCode(500, new { success = false, message = "Database error occurred" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting appointments for patient key: {PatientKey}", patientKey);
+                return StatusCode(500, new { success = false, message = "Internal server error" });
+            }
+        }
+
+        [HttpGet("byUser/{patientId}")]
+        public async Task<IActionResult> GetAppointmentsByUser(string patientId)
+        {
+            try
+            {
+                var appointments = await _appointmentService.GetAppointmentsByUserAsync(patientId);
+                return Ok(new { success = true, data = appointments, count = appointments.Count });
+            }
+            catch (InvalidAppointmentDataException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (PatientNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (DatabaseException ex)
+            {
+                _logger.LogError(ex, "Database error getting appointments for patient: {PatientId}", patientId);
+                return StatusCode(500, new { success = false, message = "Database error occurred" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting appointments for patient: {PatientId}", patientId);
+                return StatusCode(500, new { success = false, message = "Internal server error" });
+            }
+        }
+
+        [HttpPost("generateSlots")]
+        public async Task<IActionResult> GenerateSlotsForProvider([FromQuery] int providerKey, [FromQuery] DateOnly startDate, [FromQuery] DateOnly endDate)
+        {
+            try
+            {
+                await _appointmentService.GenerateSlotsForProviderAsync(providerKey, startDate, endDate);
+                return Ok(new { success = true, message = "Slots generated successfully" });
+            }
+            catch (InvalidAppointmentDataException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (DoctorNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (DoctorNotActiveException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (PastAppointmentException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (DatabaseException ex)
+            {
+                _logger.LogError(ex, "Database error generating slots for provider: {ProviderKey}", providerKey);
+                return StatusCode(500, new { success = false, message = "Database error occurred" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating slots for provider: {ProviderKey}", providerKey);
+                return StatusCode(500, new { success = false, message = "Internal server error" });
+            }
         }
 
         [HttpGet("byProvider/{doctorName}")]
@@ -304,174 +506,6 @@ namespace WebAPI.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting slots for service: {ServiceId}", serviceId);
-                return StatusCode(500, new { success = false, message = "Internal server error" });
-            }
-        }
-
-        [HttpPost("book/{slotId}")]
-        public async Task<IActionResult> BookAppointment(int slotId, [FromBody] BookAppointmentRequest request)
-        {
-            try
-            {
-                await _appointmentService.BookAppointmentAsync(slotId, request.PatientKey.ToString());
-                return Ok(new { success = true, message = "Appointment booked successfully" });
-            }
-            catch (InvalidAppointmentDataException ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
-            catch (PatientNotFoundException ex)
-            {
-                return NotFound(new { success = false, message = ex.Message });
-            }
-            catch (SlotNotFoundException ex)
-            {
-                return NotFound(new { success = false, message = ex.Message });
-            }
-            catch (SlotAlreadyBookedException ex)
-            {
-                return Conflict(new { success = false, message = ex.Message });
-            }
-            catch (TimeConflictException ex)
-            {
-                return Conflict(new { success = false, message = ex.Message });
-            }
-            catch (PastAppointmentException ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
-            catch (DoctorNotActiveException ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
-            catch (DatabaseException ex)
-            {
-                _logger.LogError(ex, "Database error booking appointment - SlotId: {SlotId}, PatientKey: {PatientKey}", slotId, request.PatientKey);
-                return StatusCode(500, new { success = false, message = "Database error occurred" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error booking appointment - SlotId: {SlotId}, PatientKey: {PatientKey}", slotId, request.PatientKey);
-                return StatusCode(500, new { success = false, message = "Internal server error" });
-            }
-        }
-
-        [HttpDelete("{appointmentId}")]
-        public async Task<IActionResult> CancelAppointment(int appointmentId)
-        {
-            try
-            {
-                await _appointmentService.CancelAppointmentAsync(appointmentId);
-                return Ok(new { success = true, message = "Appointment cancelled successfully" });
-            }
-            catch (InvalidAppointmentDataException ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
-            catch (AppointmentNotFoundException ex)
-            {
-                return NotFound(new { success = false, message = ex.Message });
-            }
-            catch (DatabaseException ex)
-            {
-                _logger.LogError(ex, "Database error cancelling appointment: {AppointmentId}", appointmentId);
-                return StatusCode(500, new { success = false, message = "Database error occurred" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error cancelling appointment: {AppointmentId}", appointmentId);
-                return StatusCode(500, new { success = false, message = "Internal server error" });
-            }
-        }
-
-        [HttpGet("byUser/{patientId}")]
-        public async Task<IActionResult> GetAppointmentsByUser(string patientId)
-        {
-            try
-            {
-                var appointments = await _appointmentService.GetAppointmentsByUserAsync(patientId);
-                return Ok(new { success = true, data = appointments, count = appointments.Count });
-            }
-            catch (InvalidAppointmentDataException ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
-            catch (PatientNotFoundException ex)
-            {
-                return NotFound(new { success = false, message = ex.Message });
-            }
-            catch (DatabaseException ex)
-            {
-                _logger.LogError(ex, "Database error getting appointments for patient: {PatientId}", patientId);
-                return StatusCode(500, new { success = false, message = "Database error occurred" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting appointments for patient: {PatientId}", patientId);
-                return StatusCode(500, new { success = false, message = "Internal server error" });
-            }
-        }
-
-        [HttpGet("byUserKey/{patientKey}")]
-        public async Task<IActionResult> GetAppointmentsByUserKey(int patientKey)
-        {
-            try
-            {
-                var appointments = await _appointmentService.GetAppointmentsByPatientIdAsync(patientKey);
-                return Ok(new { success = true, data = appointments, count = appointments.Count });
-            }
-            catch (InvalidAppointmentDataException ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
-            catch (PatientNotFoundException ex)
-            {
-                return NotFound(new { success = false, message = ex.Message });
-            }
-            catch (DatabaseException ex)
-            {
-                _logger.LogError(ex, "Database error getting appointments for patient key: {PatientKey}", patientKey);
-                return StatusCode(500, new { success = false, message = "Database error occurred" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting appointments for patient key: {PatientKey}", patientKey);
-                return StatusCode(500, new { success = false, message = "Internal server error" });
-            }
-        }
-
-        [HttpPost("generateSlots")]
-        public async Task<IActionResult> GenerateSlotsForProvider([FromQuery] int providerKey, [FromQuery] DateOnly startDate, [FromQuery] DateOnly endDate)
-        {
-            try
-            {
-                await _appointmentService.GenerateSlotsForProviderAsync(providerKey, startDate, endDate);
-                return Ok(new { success = true, message = "Slots generated successfully" });
-            }
-            catch (InvalidAppointmentDataException ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
-            catch (DoctorNotFoundException ex)
-            {
-                return NotFound(new { success = false, message = ex.Message });
-            }
-            catch (DoctorNotActiveException ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
-            catch (PastAppointmentException ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
-            catch (DatabaseException ex)
-            {
-                _logger.LogError(ex, "Database error generating slots for provider: {ProviderKey}", providerKey);
-                return StatusCode(500, new { success = false, message = "Database error occurred" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error generating slots for provider: {ProviderKey}", providerKey);
                 return StatusCode(500, new { success = false, message = "Internal server error" });
             }
         }

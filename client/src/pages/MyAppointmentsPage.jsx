@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { getAppointmentsByUser, cancelAppointment } from '../services/appointmentService.js';
 import { getPatientKeyFromToken } from '../utils/authUtils';
 
-export default function MyAppointmentsPage() {
+export default function() {
   const [appointments, setAppointments] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -54,7 +54,9 @@ export default function MyAppointmentsPage() {
             const doctorName = slot.providerKeyNavigation?.name || 'Unknown Doctor';
             const location = slot.branch?.branchName || 'Unknown Location';
             const date = slot.slotDate || a.date || 'Unknown Date';
-            const time = slot.slotStart || a.time || 'Unknown Time';
+            let timeRaw = slot.slotStart || a.time || 'Unknown Time';
+            // Format time to HH:mm
+            let time = timeRaw && typeof timeRaw === 'string' && timeRaw.length >= 5 ? timeRaw.substring(0,5) : timeRaw;
 
             return (
               <li key={a.id || a.appointmentId}>
