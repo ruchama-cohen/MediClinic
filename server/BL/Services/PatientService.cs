@@ -83,6 +83,16 @@ namespace BLL.Services
         public async Task<bool> UpdatePatientPartial(int patientKey, string? name = null, string? email = null, string? phone = null,
             int? cityId = null, int? streetId = null, int? houseNumber = null, string? postalCode = null)
         {
+            Console.WriteLine($"=== UpdatePatientPartial START ===");
+            Console.WriteLine($"PatientKey: {patientKey}");
+            Console.WriteLine($"Name: '{name}'");
+            Console.WriteLine($"Email: '{email}'");
+            Console.WriteLine($"Phone: '{phone}'");
+            Console.WriteLine($"CityId: {cityId}");
+            Console.WriteLine($"StreetId: {streetId}");
+            Console.WriteLine($"HouseNumber: {houseNumber}");
+            Console.WriteLine($"PostalCode: '{postalCode}'");
+
             if (patientKey <= 0)
                 throw new InvalidAppointmentDataException("Patient key is required");
 
@@ -90,38 +100,66 @@ namespace BLL.Services
             if (existingPatient == null)
                 throw new PatientNotFoundException(patientKey.ToString());
 
+            Console.WriteLine($"Found existing patient: {existingPatient.PatientName}");
             bool hasChanges = false;
 
-            // עדכון שם
-            if (!string.IsNullOrWhiteSpace(name) && name != existingPatient.PatientName)
+            // עדכון שם אם סופק
+            if (!string.IsNullOrWhiteSpace(name))
             {
-                if (name.Trim().Length < 2)
+                string trimmedName = name.Trim();
+                if (trimmedName.Length < 2)
                     throw new InvalidAppointmentDataException("Name must be at least 2 characters");
-                existingPatient.PatientName = name.Trim();
-                hasChanges = true;
+
+                if (trimmedName != existingPatient.PatientName)
+                {
+                    Console.WriteLine($"Updating name from '{existingPatient.PatientName}' to '{trimmedName}'");
+                    existingPatient.PatientName = trimmedName;
+                    hasChanges = true;
+                }
             }
 
-            // עדכון אימייל
-            if (!string.IsNullOrWhiteSpace(email) && email != existingPatient.Email)
+            // עדכון אימייל אם סופק
+            if (!string.IsNullOrWhiteSpace(email))
             {
-                if (!IsValidEmail(email))
+                string trimmedEmail = email.Trim();
+                if (!IsValidEmail(trimmedEmail))
                     throw new InvalidAppointmentDataException("Valid email is required");
-                existingPatient.Email = email.Trim();
-                hasChanges = true;
+
+                if (trimmedEmail != existingPatient.Email)
+                {
+                    Console.WriteLine($"Updating email from '{existingPatient.Email}' to '{trimmedEmail}'");
+                    existingPatient.Email = trimmedEmail;
+                    hasChanges = true;
+                }
             }
 
-            // עדכון טלפון
-            if (!string.IsNullOrWhiteSpace(phone) && phone != existingPatient.Phone)
+            // עדכון טלפון אם סופק
+            if (!string.IsNullOrWhiteSpace(phone))
             {
-                if (phone.Length < 10 || phone.Length > 15)
+                string trimmedPhone = phone.Trim();
+                if (trimmedPhone.Length < 10 || trimmedPhone.Length > 15)
                     throw new InvalidAppointmentDataException("Phone must be between 10 and 15 characters");
-                existingPatient.Phone = phone.Trim();
-                hasChanges = true;
+
+                if (trimmedPhone != existingPatient.Phone)
+                {
+                    Console.WriteLine($"Updating phone from '{existingPatient.Phone}' to '{trimmedPhone}'");
+                    existingPatient.Phone = trimmedPhone;
+                    hasChanges = true;
+                }
             }
 
-            // עדכון כתובת - רק אם כל הפרמטרים של הכתובת מועברים
-            if (cityId.HasValue && streetId.HasValue && houseNumber.HasValue && !string.IsNullOrWhiteSpace(postalCode))
+            // עדכון כתובת - רק אם כל הפרטים סופקו או שכולם null
+            bool hasAnyAddressData = cityId.HasValue || streetId.HasValue || houseNumber.HasValue || !string.IsNullOrWhiteSpace(postalCode);
+            bool hasAllAddressData = cityId.HasValue && streetId.HasValue && houseNumber.HasValue && !string.IsNullOrWhiteSpace(postalCode);
+
+            if (hasAnyAddressData)
             {
+                if (!hasAllAddressData)
+                {
+                    throw new InvalidAppointmentDataException("To update address, all address fields must be provided (city, street, house number, postal code)");
+                }
+
+                // וולידציה של נתוני כתובת
                 if (cityId.Value <= 0)
                     throw new InvalidAppointmentDataException("Valid city is required");
 
@@ -131,45 +169,59 @@ namespace BLL.Services
                 if (houseNumber.Value <= 0 || houseNumber.Value > 9999)
                     throw new InvalidAppointmentDataException("House number must be between 1 and 9999");
 
-                if (postalCode.Length < 4 || postalCode.Length > 10)
+                string trimmedPostalCode = postalCode!.Trim();
+                if (trimmedPostalCode.Length < 4 || trimmedPostalCode.Length > 10)
                     throw new InvalidAppointmentDataException("Postal code must be between 4 and 10 characters");
+
+                Console.WriteLine($"Processing address update: City={cityId}, Street={streetId}, House={houseNumber}, Postal={trimmedPostalCode}");
 
                 // בדיקה אם יש כתובת קיימת עם הפרטים האלה
                 var existingAddress = await _addressManagement.FindExistingAddressAsync(
-                    cityId.Value, streetId.Value, houseNumber.Value, postalCode.Trim());
+                    cityId.Value, streetId.Value, houseNumber.Value, trimmedPostalCode);
 
                 int addressId;
                 if (existingAddress != null)
                 {
+                    Console.WriteLine($"Found existing address: {existingAddress.AddressId}");
                     addressId = existingAddress.AddressId;
                 }
                 else
                 {
+                    Console.WriteLine("Creating new address");
                     // יצירת כתובת חדשה
                     var newAddress = new Address
                     {
                         CityId = cityId.Value,
                         StreetId = streetId.Value,
                         HouseNumber = houseNumber.Value,
-                        PostalCode = postalCode.Trim()
+                        PostalCode = trimmedPostalCode
                     };
                     addressId = await _addressManagement.AddAddress(newAddress);
+                    Console.WriteLine($"Created new address with ID: {addressId}");
                 }
 
                 if (existingPatient.AddressId != addressId)
                 {
+                    Console.WriteLine($"Updating address ID from {existingPatient.AddressId} to {addressId}");
                     existingPatient.AddressId = addressId;
                     hasChanges = true;
                 }
             }
 
-            if (!hasChanges)
-                return true; // אין שינויים, אבל זה בסדר
+            Console.WriteLine($"Has changes: {hasChanges}");
 
+            if (!hasChanges)
+            {
+                Console.WriteLine("No changes detected, returning true");
+                return true; // אין שינויים, אבל זה בסדר
+            }
+
+            Console.WriteLine("Saving changes to database");
             bool result = await _patientManagement.UpdatePatient(existingPatient);
             if (!result)
                 throw new DatabaseException("Failed to update patient");
 
+            Console.WriteLine($"=== UpdatePatientPartial END - Success: {result} ===");
             return true;
         }
 

@@ -33,10 +33,16 @@ export default function PatientProfilePage() {
   const [updating, setUpdating] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [loadingStreets, setLoadingStreets] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     loadInitialData();
   }, []);
+
+  // עדכון מצב השינויים כאשר נתונים משתנים
+  useEffect(() => {
+    checkForChanges();
+  }, [patientName, email, phone, cityId, streetId, houseNumber, postalCode, originalData]);
 
   const loadInitialData = async () => {
     const patientKeyFromToken = getPatientKeyFromToken();
@@ -80,7 +86,7 @@ export default function PatientProfilePage() {
       setCities(citiesData.data || []);
      
       // שמירת נתונים מקוריים להשוואה
-      setOriginalData({
+      const original = {
         PatientName: patientData.PatientName || '',
         Email: patientData.Email || '',
         Phone: patientData.Phone || '',
@@ -88,17 +94,10 @@ export default function PatientProfilePage() {
         StreetId: patientData.Address?.StreetId || '',
         HouseNumber: patientData.Address?.HouseNumber || '',
         PostalCode: patientData.Address?.PostalCode || ''
-      });
+      };
+      setOriginalData(original);
      
-      console.log('✅ Original data saved:', {
-        PatientName: patientData.PatientName || '',
-        Email: patientData.Email || '',
-        Phone: patientData.Phone || '',
-        CityId: patientData.Address?.CityId || '',
-        StreetId: patientData.Address?.StreetId || '',
-        HouseNumber: patientData.Address?.HouseNumber || '',
-        PostalCode: patientData.Address?.PostalCode || ''
-      });
+      console.log('✅ Original data saved:', original);
      
     } catch (error) {
       console.error('❌ Error loading data:', error);
@@ -141,7 +140,9 @@ export default function PatientProfilePage() {
     };
   };
 
-  const hasChanges = () => {
+  const checkForChanges = () => {
+    if (Object.keys(originalData).length === 0) return;
+   
     const current = getCurrentData();
     const changed = {
       name: current.PatientName !== originalData.PatientName,
@@ -154,8 +155,7 @@ export default function PatientProfilePage() {
     };
    
     const hasAnyChange = Object.values(changed).some(Boolean);
-    console.log('🔍 Changes detected:', changed, 'Overall:', hasAnyChange);
-    return hasAnyChange;
+    setHasChanges(hasAnyChange);
   };
 
   const handleUpdate = async () => {
@@ -170,19 +170,18 @@ export default function PatientProfilePage() {
     console.log('📊 Current data:', current);
     console.log('📊 Original data:', originalData);
 
-    // בניית אובייקט עדכון
-    const updateData = { PatientKey: patientKey };
-    let hasAnyChange = false;
+    // בניית אובייקט עדכון - רק שדות שהשתנו
+    const updateData = {
+      PatientKey: patientKey
+    };
 
-    // בדיקת שינויים בפרטים אישיים
+    // הוספת שדות שהשתנו
     if (current.PatientName !== originalData.PatientName) {
       if (!current.PatientName || current.PatientName.length < 2) {
         alert('Name must be at least 2 characters');
         return;
       }
       updateData.PatientName = current.PatientName;
-      hasAnyChange = true;
-      console.log('📝 Name will be updated:', current.PatientName);
     }
 
     if (current.Email !== originalData.Email) {
@@ -191,8 +190,6 @@ export default function PatientProfilePage() {
         return;
       }
       updateData.Email = current.Email;
-      hasAnyChange = true;
-      console.log('📧 Email will be updated:', current.Email);
     }
 
     if (current.Phone !== originalData.Phone) {
@@ -201,8 +198,6 @@ export default function PatientProfilePage() {
         return;
       }
       updateData.Phone = current.Phone;
-      hasAnyChange = true;
-      console.log('📞 Phone will be updated:', current.Phone);
     }
 
     // בדיקת שינויים בכתובת
@@ -213,15 +208,16 @@ export default function PatientProfilePage() {
       current.PostalCode !== originalData.PostalCode;
 
     if (addressChanged) {
-      console.log('🏠 Address changed detected');
+      // אם יש נתוני כתובת - חייבים להיות כולם או כולם ריקים
+      const hasAnyAddressData = current.CityId || current.StreetId || current.HouseNumber || current.PostalCode;
+      const hasAllAddressData = current.CityId && current.StreetId && current.HouseNumber && current.PostalCode;
      
-      // אם יש נתוני כתובת - חייבים להיות כולם
-      if (current.CityId || current.StreetId || current.HouseNumber || current.PostalCode) {
-        if (!current.CityId || !current.StreetId || !current.HouseNumber || !current.PostalCode) {
-          alert('Please fill all address fields or leave all empty');
-          return;
-        }
-       
+      if (hasAnyAddressData && !hasAllAddressData) {
+        alert('Please fill all address fields or leave all empty');
+        return;
+      }
+     
+      if (hasAllAddressData) {
         if (current.HouseNumber < 1 || current.HouseNumber > 9999) {
           alert('House number must be between 1 and 9999');
           return;
@@ -238,14 +234,7 @@ export default function PatientProfilePage() {
           HouseNumber: parseInt(current.HouseNumber),
           PostalCode: current.PostalCode
         };
-        hasAnyChange = true;
-        console.log('🏠 Address will be updated:', updateData.Address);
       }
-    }
-
-    if (!hasAnyChange) {
-      alert('No changes detected');
-      return;
     }
 
     console.log('📤 Sending update:', updateData);
@@ -257,6 +246,7 @@ export default function PatientProfilePage() {
      
       // עדכון הנתונים המקוריים
       setOriginalData(current);
+      setHasChanges(false);
       alert('Profile updated successfully!');
      
     } catch (error) {
@@ -340,10 +330,7 @@ export default function PatientProfilePage() {
               border: '1px solid #ddd'
             }}
             value={patientName}
-            onChange={(e) => {
-              console.log('📝 Name changed to:', e.target.value);
-              setPatientName(e.target.value);
-            }}
+            onChange={(e) => setPatientName(e.target.value)}
             placeholder="Full Name"
           />
         </div>
@@ -361,10 +348,7 @@ export default function PatientProfilePage() {
             }}
             type="email"
             value={email}
-            onChange={(e) => {
-              console.log('📧 Email changed to:', e.target.value);
-              setEmail(e.target.value);
-            }}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
           />
         </div>
@@ -381,10 +365,7 @@ export default function PatientProfilePage() {
               border: '1px solid #ddd'
             }}
             value={phone}
-            onChange={(e) => {
-              console.log('📞 Phone changed to:', e.target.value);
-              setPhone(e.target.value);
-            }}
+            onChange={(e) => setPhone(e.target.value)}
             placeholder="Phone"
           />
         </div>
@@ -435,10 +416,7 @@ export default function PatientProfilePage() {
               border: '1px solid #ddd'
             }}
             value={streetId}
-            onChange={(e) => {
-              console.log('🛣️ Street changed to:', e.target.value);
-              setStreetId(e.target.value);
-            }}
+            onChange={(e) => setStreetId(e.target.value)}
             disabled={!cityId || loadingStreets}
           >
             <option value="">-- Select Street --</option>
@@ -467,10 +445,7 @@ export default function PatientProfilePage() {
               min="1"
               max="9999"
               value={houseNumber}
-              onChange={(e) => {
-                console.log('🏠 House number changed to:', e.target.value);
-                setHouseNumber(e.target.value);
-              }}
+              onChange={(e) => setHouseNumber(e.target.value)}
               placeholder="House Number"
             />
           </div>
@@ -487,32 +462,30 @@ export default function PatientProfilePage() {
                 border: '1px solid #ddd'
               }}
               value={postalCode}
-              onChange={(e) => {
-                console.log('📮 Postal code changed to:', e.target.value);
-                setPostalCode(e.target.value);
-              }}
+              onChange={(e) => setPostalCode(e.target.value)}
               placeholder="Postal Code"
             />
           </div>
         </div>
       </div>
 
+      {/* עדכון כפתור השמירה */}
       <button
         onClick={handleUpdate}
-        disabled={updating || !hasChanges()}
+        disabled={updating || !hasChanges}
         style={{
-          backgroundColor: updating ? '#ccc' : (!hasChanges() ? '#6c757d' : '#007bff'),
+          backgroundColor: updating ? '#ccc' : (!hasChanges ? '#6c757d' : '#007bff'),
           color: 'white',
           padding: '10px 20px',
           border: 'none',
           borderRadius: '4px',
-          cursor: (updating || !hasChanges()) ? 'not-allowed' : 'pointer',
+          cursor: (updating || !hasChanges) ? 'not-allowed' : 'pointer',
           fontSize: '16px',
           marginBottom: '30px',
           width: '100%'
         }}
       >
-        {updating ? 'Updating...' : (!hasChanges() ? 'No Changes to Save' : 'Update Info')}
+        {updating ? 'Updating...' : (!hasChanges ? 'No Changes to Save' : 'Update Info')}
       </button>
 
       {/* Password Change */}

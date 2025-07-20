@@ -23,8 +23,6 @@ namespace WebAPI.Controllers
         /// <summary>
         /// קבלת פרטי מטופל לפי PatientKey
         /// </summary>
-        /// <param name="patientKey">מפתח המטופל</param>
-        /// <returns>פרטי המטופל כולל כתובת</returns>
         [HttpGet("by-key/{patientKey}")]
         public async Task<IActionResult> GetPatientByKey(int patientKey)
         {
@@ -73,10 +71,8 @@ namespace WebAPI.Controllers
         }
 
         /// <summary>
-        /// עדכון חלקי של פרטי מטופל
+        /// עדכון חלקי של פרטי מטופל - כל השדות אופציונליים
         /// </summary>
-        /// <param name="request">פרטים לעדכון - כל השדות אופציונליים למעט PatientKey</param>
-        /// <returns>הודעת הצלחה או שגיאה</returns>
         [HttpPut("update")]
         public async Task<IActionResult> UpdatePatient([FromBody] UpdatePatientRequest request)
         {
@@ -89,20 +85,31 @@ namespace WebAPI.Controllers
                     return BadRequest(new { success = false, message = "Invalid data", errors = errors });
                 }
 
-                // בדיקת תקינות הכתובת אם סופקה
-                if (request.Address != null )
-                {
-                    _logger.LogWarning("Invalid address data for patient: {PatientKey}", request.PatientKey);
-                    return BadRequest(new
-                    {
-                        success = false,
-                        message = "Address must be complete (all fields) or empty (no fields)"
-                    });
-                }
+                _logger.LogInformation("Updating patient: {PatientKey}", request.PatientKey);
 
-                _logger.LogInformation("Updating patient: {PatientKey} with partial data", request.PatientKey);
-                _logger.LogDebug("Update data: Name={Name}, Email={Email}, Phone={Phone}, HasAddress={HasAddress}",
-                    request.PatientName, request.Email, request.Phone, request.Address);
+                // בדיקה אם סופקו נתוני כתובת חלקיים
+                if (request.Address != null)
+                {
+                    bool hasAnyAddressField = request.Address.CityId.HasValue ||
+                                            request.Address.StreetId.HasValue ||
+                                            request.Address.HouseNumber.HasValue ||
+                                            !string.IsNullOrWhiteSpace(request.Address.PostalCode);
+
+                    bool hasAllAddressFields = request.Address.CityId.HasValue &&
+                                             request.Address.StreetId.HasValue &&
+                                             request.Address.HouseNumber.HasValue &&
+                                             !string.IsNullOrWhiteSpace(request.Address.PostalCode);
+
+                    if (hasAnyAddressField && !hasAllAddressFields)
+                    {
+                        _logger.LogWarning("Partial address data provided for patient: {PatientKey}", request.PatientKey);
+                        return BadRequest(new
+                        {
+                            success = false,
+                            message = "To update address, all address fields must be provided (city, street, house number, postal code)"
+                        });
+                    }
+                }
 
                 await _patientService.UpdatePatientPartial(
                     request.PatientKey,
@@ -143,8 +150,6 @@ namespace WebAPI.Controllers
         /// <summary>
         /// שינוי סיסמה של מטופל
         /// </summary>
-        /// <param name="request">בקשת שינוי סיסמה</param>
-        /// <returns>הודעת הצלחה או שגיאה</returns>
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
@@ -191,9 +196,8 @@ namespace WebAPI.Controllers
         }
 
         /// <summary>
-        /// קבלת כל הערים הזמינות למילוי כתובת
+        /// קבלת כל הערים הזמינות
         /// </summary>
-        /// <returns>רשימת ערים</returns>
         [HttpGet("cities")]
         public async Task<IActionResult> GetCities()
         {
@@ -221,8 +225,6 @@ namespace WebAPI.Controllers
         /// <summary>
         /// קבלת רחובות לפי עיר
         /// </summary>
-        /// <param name="cityId">מזהה העיר</param>
-        /// <returns>רשימת רחובות בעיר</returns>
         [HttpGet("streets/{cityId}")]
         public async Task<IActionResult> GetStreetsByCity(int cityId)
         {
@@ -263,9 +265,8 @@ namespace WebAPI.Controllers
         }
 
         /// <summary>
-        /// בדיקת מצב השרת - endpoint לבדיקות
+        /// בדיקת מצב השרת
         /// </summary>
-        /// <returns>מצב השרת</returns>
         [HttpGet("health")]
         public IActionResult HealthCheck()
         {
