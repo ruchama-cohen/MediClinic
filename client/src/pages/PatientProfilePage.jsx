@@ -63,22 +63,24 @@ export default function PatientProfilePage() {
       console.log('✅ Patient data:', patientData);
       console.log('✅ Cities data:', citiesData);
      
-      // שמירת נתוני המטופל
-      setPatientKey(patientData.patientKey);
-      setPatientName(patientData.PatientName || '');
-      setEmail(patientData.Email || '');
-      setPhone(patientData.Phone || '');
+      // שמירת נתוני המטופל - תמיכה בשני סוגי השמות
+      setPatientKey(patientData.PatientKey || patientData.patientKey);
+      setPatientName(patientData.PatientName || patientData.patientName || '');
+      setEmail(patientData.Email || patientData.email || '');
+      setPhone(patientData.Phone || patientData.phone || '');
      
-      // שמירת נתוני כתובת
-      if (patientData.Address) {
-        setCityId(patientData.Address.CityId || '');
-        setStreetId(patientData.Address.StreetId || '');
-        setHouseNumber(patientData.Address.HouseNumber || '');
-        setPostalCode(patientData.Address.PostalCode || '');
+      // שמירת נתוני כתובת - תמיכה בשני סוגי השמות
+      if (patientData.Address || patientData.address) {
+        const address = patientData.Address || patientData.address;
+        setCityId(address.CityId || address.cityId || '');
+        setStreetId(address.StreetId || address.streetId || '');
+        setHouseNumber(address.HouseNumber || address.houseNumber || '');
+        setPostalCode(address.PostalCode || address.postalCode || '');
        
         // טעינת רחובות אם יש עיר
-        if (patientData.Address.CityId) {
-          const streetsData = await getStreetsByCity(patientData.Address.CityId);
+        const addressCityId = address.CityId || address.cityId;
+        if (addressCityId) {
+          const streetsData = await getStreetsByCity(addressCityId);
           setStreets(streetsData.data || []);
         }
       }
@@ -86,14 +88,15 @@ export default function PatientProfilePage() {
       setCities(citiesData.data || []);
      
       // שמירת נתונים מקוריים להשוואה
+      const address = patientData.Address || patientData.address;
       const original = {
-        PatientName: patientData.PatientName || '',
-        Email: patientData.Email || '',
-        Phone: patientData.Phone || '',
-        CityId: patientData.Address?.CityId || '',
-        StreetId: patientData.Address?.StreetId || '',
-        HouseNumber: patientData.Address?.HouseNumber || '',
-        PostalCode: patientData.Address?.PostalCode || ''
+        patientName: patientData.PatientName || patientData.patientName || '',
+        email: patientData.Email || patientData.email || '',
+        phone: patientData.Phone || patientData.phone || '',
+        cityId: address?.CityId || address?.cityId || '',
+        streetId: address?.StreetId || address?.streetId || '',
+        houseNumber: address?.HouseNumber || address?.houseNumber || '',
+        postalCode: address?.PostalCode || address?.postalCode || ''
       };
       setOriginalData(original);
      
@@ -130,28 +133,28 @@ export default function PatientProfilePage() {
 
   const getCurrentData = () => {
     return {
-      PatientName: patientName.trim(),
-      Email: email.trim(),
-      Phone: phone.trim(),
-      CityId: cityId,
-      StreetId: streetId,
-      HouseNumber: houseNumber,
-      PostalCode: postalCode.trim()
+      patientName: patientName.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      cityId: cityId,
+      streetId: streetId,
+      houseNumber: houseNumber,
+      postalCode: postalCode.trim()
     };
   };
 
   const checkForChanges = () => {
     if (Object.keys(originalData).length === 0) return;
-   
+    
     const current = getCurrentData();
     const changed = {
-      name: current.PatientName !== originalData.PatientName,
-      email: current.Email !== originalData.Email,
-      phone: current.Phone !== originalData.Phone,
-      city: current.CityId !== originalData.CityId,
-      street: current.StreetId !== originalData.StreetId,
-      house: current.HouseNumber !== originalData.HouseNumber,
-      postal: current.PostalCode !== originalData.PostalCode
+      name: current.patientName !== originalData.patientName,
+      email: current.email !== originalData.email,
+      phone: current.phone !== originalData.phone,
+      city: current.cityId !== originalData.cityId,
+      street: current.streetId !== originalData.streetId,
+      house: current.houseNumber !== originalData.houseNumber,
+      postal: current.postalCode !== originalData.postalCode
     };
    
     const hasAnyChange = Object.values(changed).some(Boolean);
@@ -172,67 +175,67 @@ export default function PatientProfilePage() {
 
     // בניית אובייקט עדכון - רק שדות שהשתנו
     const updateData = {
-      PatientKey: patientKey
+      PatientKey: patientKey  // השתמש ב-PascalCase עבור הקמיוניקציה עם השרת
     };
 
-    // הוספת שדות שהשתנו
-    if (current.PatientName !== originalData.PatientName) {
-      if (!current.PatientName || current.PatientName.length < 2) {
+    // הוספת שדות שהשתנו - עם PascalCase
+    if (current.patientName !== originalData.patientName) {
+      if (!current.patientName || current.patientName.length < 2) {
         alert('Name must be at least 2 characters');
         return;
       }
-      updateData.PatientName = current.PatientName;
+      updateData.PatientName = current.patientName;
     }
 
-    if (current.Email !== originalData.Email) {
-      if (!current.Email || !isValidEmail(current.Email)) {
+    if (current.email !== originalData.email) {
+      if (!current.email || !isValidEmail(current.email)) {
         alert('Please enter a valid email');
         return;
       }
-      updateData.Email = current.Email;
+      updateData.Email = current.email;
     }
 
-    if (current.Phone !== originalData.Phone) {
-      if (!current.Phone || current.Phone.length < 10) {
+    if (current.phone !== originalData.phone) {
+      if (!current.phone || current.phone.length < 10) {
         alert('Phone must be at least 10 characters');
         return;
       }
-      updateData.Phone = current.Phone;
+      updateData.Phone = current.phone;
     }
 
     // בדיקת שינויים בכתובת
     const addressChanged =
-      current.CityId !== originalData.CityId ||
-      current.StreetId !== originalData.StreetId ||
-      current.HouseNumber !== originalData.HouseNumber ||
-      current.PostalCode !== originalData.PostalCode;
+      current.cityId !== originalData.cityId ||
+      current.streetId !== originalData.streetId ||
+      current.houseNumber !== originalData.houseNumber ||
+      current.postalCode !== originalData.postalCode;
 
     if (addressChanged) {
       // אם יש נתוני כתובת - חייבים להיות כולם או כולם ריקים
-      const hasAnyAddressData = current.CityId || current.StreetId || current.HouseNumber || current.PostalCode;
-      const hasAllAddressData = current.CityId && current.StreetId && current.HouseNumber && current.PostalCode;
-     
+      const hasAnyAddressData = current.cityId || current.streetId || current.houseNumber || current.postalCode;
+      const hasAllAddressData = current.cityId && current.streetId && current.houseNumber && current.postalCode;
+      
       if (hasAnyAddressData && !hasAllAddressData) {
         alert('Please fill all address fields or leave all empty');
         return;
       }
-     
+      
       if (hasAllAddressData) {
-        if (current.HouseNumber < 1 || current.HouseNumber > 9999) {
+        if (current.houseNumber < 1 || current.houseNumber > 9999) {
           alert('House number must be between 1 and 9999');
           return;
         }
        
-        if (current.PostalCode.length < 4 || current.PostalCode.length > 10) {
+        if (current.postalCode.length < 4 || current.postalCode.length > 10) {
           alert('Postal code must be between 4 and 10 characters');
           return;
         }
 
         updateData.Address = {
-          CityId: parseInt(current.CityId),
-          StreetId: parseInt(current.StreetId),
-          HouseNumber: parseInt(current.HouseNumber),
-          PostalCode: current.PostalCode
+          CityId: parseInt(current.cityId),
+          StreetId: parseInt(current.streetId),
+          HouseNumber: parseInt(current.houseNumber),
+          PostalCode: current.postalCode
         };
       }
     }
@@ -277,7 +280,7 @@ export default function PatientProfilePage() {
     setChangingPassword(true);
     try {
       await changePassword({
-        PatientKey: patientKey,
+        PatientKey: patientKey,  // השתמש ב-PascalCase
         CurrentPassword: currentPassword,
         NewPassword: newPassword,
         ConfirmPassword: confirmPassword
@@ -397,8 +400,8 @@ export default function PatientProfilePage() {
           >
             <option value="">-- Select City --</option>
             {cities.map((city, index) => (
-              <option key={`city-${city.CityId}-${index}`} value={city.CityId}>
-                {city.Name}
+              <option key={`city-${city.CityId || city.cityId}-${index}`} value={city.CityId || city.cityId}>
+                {city.Name || city.name}
               </option>
             ))}
           </select>
@@ -421,8 +424,8 @@ export default function PatientProfilePage() {
           >
             <option value="">-- Select Street --</option>
             {streets.map((street, index) => (
-              <option key={`street-${street.StreetId}-${index}`} value={street.StreetId}>
-                {street.Name}
+              <option key={`street-${street.StreetId || street.streetId}-${index}`} value={street.StreetId || street.streetId}>
+                {street.Name || street.name}
               </option>
             ))}
           </select>
@@ -469,7 +472,7 @@ export default function PatientProfilePage() {
         </div>
       </div>
 
-      {/* עדכון כפתור השמירה */}
+      {/* כפתור עדכון */}
       <button
         onClick={handleUpdate}
         disabled={updating || !hasChanges}

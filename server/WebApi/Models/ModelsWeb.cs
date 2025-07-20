@@ -71,7 +71,6 @@ namespace WebAPI.Models
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 
-    // מודלים עבור ערים ורחובות
     public class CityResponse
     {
         public int CityId { get; set; }
