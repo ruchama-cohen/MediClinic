@@ -15,7 +15,6 @@ namespace BL
         public IPasswordService PasswordService { get; set; }
         public ICityStreetService CityStreetService { get; set; }
 
-        // DAL Services
         public IPatientsManagement PatientsManagement { get; set; }
         public IClinicServiceManagement ClinicServiceManagement { get; set; }
         public IServiceProviderManagement ServiceProviderManagement { get; set; }

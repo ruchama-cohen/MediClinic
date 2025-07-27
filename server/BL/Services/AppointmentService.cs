@@ -93,7 +93,6 @@ namespace BLL.Services
             return availableSlots;
         }
 
-        // מתודה מעודכנת לעבוד עם PatientKey כמחרוזת (מהקונטרולר)
         public async Task<bool> BookAppointmentAsync(int slotId, string patientKeyAsString)
         {
             await _semaphore.WaitAsync();
@@ -106,7 +105,6 @@ namespace BLL.Services
                 if (string.IsNullOrWhiteSpace(patientKeyAsString))
                     throw new InvalidAppointmentDataException("Patient Key is required");
 
-                // המרה מ-string ל-int
                 if (!int.TryParse(patientKeyAsString, out int patientKey) || patientKey <= 0)
                     throw new InvalidAppointmentDataException("Valid Patient Key is required");
 

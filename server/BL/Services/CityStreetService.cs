@@ -15,8 +15,6 @@ namespace BLL.Services
 
         public async Task<List<City>> GetAllCitiesAsync()
         {
-            // נשתמש ב-AddressManagement כדי לקבל רק ערים שיש להן כתובות
-            // אם אין פונקציה כזו, נוסיף אותה
             return await _addressManagement.GetAllCitiesWithAddressesAsync();
         }
 

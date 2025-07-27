@@ -2,9 +2,7 @@
 
 namespace BLL.Exceptions
 {
-    /// <summary>
-    /// תור לא נמצא
-    /// </summary>
+    
     public class AppointmentNotFoundException : ClinicBaseException
     {
         public AppointmentNotFoundException(int appointmentId)
@@ -18,9 +16,7 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// סלוט לא נמצא
-    /// </summary>
+   
     public class SlotNotFoundException : ClinicBaseException
     {
         public SlotNotFoundException(int slotId)
@@ -34,9 +30,7 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// סלוט כבר תפוס
-    /// </summary>
+   
     public class SlotAlreadyBookedException : ClinicBaseException
     {
         public SlotAlreadyBookedException(int slotId)
@@ -50,9 +44,7 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// חפיפה בזמנים
-    /// </summary>
+  
     public class TimeConflictException : ClinicBaseException
     {
         public TimeConflictException(DateTime conflictTime)
@@ -66,9 +58,7 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// תור בעבר
-    /// </summary>
+ 
     public class PastAppointmentException : ClinicBaseException
     {
         public PastAppointmentException(DateTime appointmentTime)
@@ -82,9 +72,7 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// מועד מוקדם מדי
-    /// </summary>
+  
     public class TooEarlyBookingException : ClinicBaseException
     {
         public TooEarlyBookingException(int minimumMinutes)
@@ -98,9 +86,7 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// אין תורים פנויים
-    /// </summary>
+   
     public class NoAvailableSlotsException : ClinicBaseException
     {
         public NoAvailableSlotsException(string criteria)
@@ -114,9 +100,7 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// חריגה ממגבלת תורים יומית
-    /// </summary>
+  
     public class DailyLimitExceededException : ClinicBaseException
     {
         public DailyLimitExceededException(int maxAppointments)

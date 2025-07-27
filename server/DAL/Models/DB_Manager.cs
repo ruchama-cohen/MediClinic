@@ -35,18 +35,15 @@ public partial class DB_Manager : DbContext
 
     public virtual DbSet<WorkHour> WorkHours { get; set; }
 
-    // עדכן את DB_Manager.cs עם לוגים מפורטים
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
         {
             Console.WriteLine("=== DATABASE CONNECTION DEBUG ===");
 
-            // מציאת הנתיב הבסיסי של הפרויקט
             string currentDirectory = Directory.GetCurrentDirectory();
             Console.WriteLine($"1. Current Directory: {currentDirectory}");
 
-            // חזור אחורה עד שנמצא את תיקיית הפרויקט הראשית (MediClinic)
             string projectRoot = currentDirectory;
             int steps = 0;
 
@@ -62,7 +59,6 @@ public partial class DB_Manager : DbContext
             Console.WriteLine($"3. Final Project Root: {projectRoot}");
             Console.WriteLine($"4. DAL folder found: {Directory.Exists(Path.Combine(projectRoot, "DAL"))}");
 
-            // בדוק את תוכן התיקיות
             string dalFolder = Path.Combine(projectRoot, "DAL");
             if (Directory.Exists(dalFolder))
             {
@@ -86,7 +82,6 @@ public partial class DB_Manager : DbContext
                 }
             }
 
-            // נתיב למסד הנתונים
             string dbPath = Path.Combine(projectRoot, "DAL", "data", "DB.mdf");
             Console.WriteLine($"8. Database path: {dbPath}");
             Console.WriteLine($"9. Database file exists: {File.Exists(dbPath)}");

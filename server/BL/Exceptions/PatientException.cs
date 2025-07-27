@@ -2,9 +2,7 @@
 
 namespace BLL.Exceptions
 {
-    /// <summary>
-    /// מטופל לא נמצא
-    /// </summary>
+    
     public class PatientNotFoundException : ClinicBaseException
     {
         public PatientNotFoundException(int patientKey)
@@ -23,9 +21,7 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// שגיאת עדכון פרטי פציינט
-    /// </summary>
+  
     public class PatientUpdateException : ClinicBaseException
     {
         public PatientUpdateException(string reason)
@@ -39,9 +35,7 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// שגיאת אימות סיסמה
-    /// </summary>
+ 
     public class PasswordValidationException : ClinicBaseException
     {
         public PasswordValidationException(string reason)
@@ -55,9 +49,7 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// כתובת לא תקינה
-    /// </summary>
+ 
     public class AddressValidationException : ClinicBaseException
     {
         public AddressValidationException(string field)
@@ -71,9 +63,6 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// כתובת לא נמצאה
-    /// </summary>
     public class AddressNotFoundException : ClinicBaseException
     {
         public AddressNotFoundException(int addressId)

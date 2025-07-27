@@ -10,6 +10,5 @@ namespace BLL.API
         Task<bool> UpdatePatientPartial(int patientKey, string? name = null, string? email = null, string? phone = null,
             int? cityId = null, int? streetId = null, int? houseNumber = null, string? postalCode = null);
        
-        // הסרנו פונקציות לא נחוצות
     }
 }

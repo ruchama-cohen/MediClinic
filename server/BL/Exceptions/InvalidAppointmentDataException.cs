@@ -2,9 +2,8 @@
 
 namespace BLL.Exceptions
 {
-    /// <summary>
-    /// שגיאת נתוני תור לא תקינים
-    /// </summary>
+    
+
     public class InvalidAppointmentDataException : ClinicBaseException
     {
         public InvalidAppointmentDataException(string message)

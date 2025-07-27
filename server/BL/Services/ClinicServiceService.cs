@@ -9,7 +9,7 @@ using DAL.Models;
 
 namespace BLL.Services
 {
-    public class ClinicServiceService : IClinicServiceService  // שם שונה!
+    public class ClinicServiceService : IClinicServiceService  
     {
         private readonly IClinicServiceManagement _clinicServiceManagementDal;
 

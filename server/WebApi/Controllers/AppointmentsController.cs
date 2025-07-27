@@ -13,7 +13,7 @@ namespace WebAPI.Controllers
         private readonly IServiceProviderManagement _serviceProviderManagement;
         private readonly IClinicServiceManagement _clinicServiceManagement;
         private readonly IBranchManagement _branchManagement;
-        private readonly IAppointmentsSlotManagement _appointmentsSlotManagement; // הוסף את זה
+        private readonly IAppointmentsSlotManagement _appointmentsSlotManagement; 
         private readonly ILogger<AppointmentsController> _logger;
 
         public AppointmentsController(IBL bl, ILogger<AppointmentsController> logger)
@@ -22,7 +22,7 @@ namespace WebAPI.Controllers
             _serviceProviderManagement = bl.ServiceProviderManagement;
             _clinicServiceManagement = bl.ClinicServiceManagement;
             _branchManagement = bl.BranchManagement;
-            _appointmentsSlotManagement = bl.AppointmentsSlotManagement; // הוסף את זה
+            _appointmentsSlotManagement = bl.AppointmentsSlotManagement; 
             _logger = logger;
         }
 
@@ -36,7 +36,6 @@ namespace WebAPI.Controllers
                     return BadRequest(new { success = false, message = "Invalid search parameters" });
                 }
 
-                // קבלת כל הסלוטים לשירות עם כל הפרטים הנדרשים
                 var allSlots = await _appointmentsSlotManagement.GetAppointmentSlotByServiceTypeWithDetails(request.ServiceId);
 
                 if (allSlots == null || allSlots.Count == 0)
@@ -50,21 +49,18 @@ namespace WebAPI.Controllers
                     });
                 }
 
-                // סינון רק תורים פנויים ועתידיים
                 var availableSlots = allSlots
                     .Where(s => !s.IsBooked && s.SlotDate >= DateOnly.FromDateTime(DateTime.Now))
                     .ToList();
 
                 _logger.LogInformation($"Found {availableSlots.Count} available slots out of {allSlots.Count} total slots");
 
-                // סינון לפי ספק שירות אם נבחר
                 if (request.ProviderKey.HasValue)
                 {
                     availableSlots = availableSlots.Where(s => s.ProviderKey == request.ProviderKey.Value).ToList();
                     _logger.LogInformation($"After provider filter: {availableSlots.Count} slots");
                 }
 
-                // סינון לפי עיר אם נבחרה
                 if (!string.IsNullOrEmpty(request.CityName))
                 {
                     availableSlots = availableSlots.Where(s =>
@@ -73,31 +69,28 @@ namespace WebAPI.Controllers
                     _logger.LogInformation($"After city filter: {availableSlots.Count} slots");
                 }
 
-                // סינון לפי זמן אם נבחר
                 if (!string.IsNullOrEmpty(request.TimePeriod))
                 {
                     availableSlots = FilterByTimePeriod(availableSlots, request.TimePeriod);
                     _logger.LogInformation($"After time period filter: {availableSlots.Count} slots");
                 }
 
-                // סינון לפי תאריך אם נבחר
                 if (request.PreferredDate.HasValue)
                 {
                     availableSlots = availableSlots.Where(s => s.SlotDate == request.PreferredDate.Value).ToList();
                     _logger.LogInformation($"After date filter: {availableSlots.Count} slots");
                 }
 
-                // מיון לפי תאריך ושעה
                 var sortedSlots = availableSlots
                     .OrderBy(s => s.SlotDate)
                     .ThenBy(s => s.SlotStart)
-                    .Take(50) // הגבלה ל-50 תוצאות
+                    .Take(50) 
                     .Select(s => new
                     {
                         SlotId = s.SlotId,
-                        SlotDate = s.SlotDate, // עכשיו הconverter יטפל בזה
-                        SlotStart = s.SlotStart, // עכשיו הconverter יטפל בזה
-                        SlotEnd = s.SlotEnd, // עכשיו הconverter יטפל בזה
+                        SlotDate = s.SlotDate, 
+                        SlotStart = s.SlotStart, 
+                        SlotEnd = s.SlotEnd, 
                         ProviderName = s.ProviderKeyNavigation?.Name ?? "Unknown Provider",
                         BranchName = s.Branch?.BranchName ?? "Unknown Branch",
                         CityName = s.Branch?.Address?.City?.Name ?? "Unknown City",
@@ -293,7 +286,6 @@ namespace WebAPI.Controllers
             }
         }
 
-        // שאר המתודות נשארות כפי שהן...
         [HttpDelete("{appointmentId}")]
         public async Task<IActionResult> CancelAppointment(int appointmentId)
         {
@@ -520,7 +512,7 @@ namespace WebAPI.Controllers
             public int ServiceId { get; set; }
             public int? ProviderKey { get; set; }
             public string? CityName { get; set; }
-            public string? TimePeriod { get; set; } // morning, afternoon, evening
+            public string? TimePeriod { get; set; } 
             public DateOnly? PreferredDate { get; set; }
         }
     }

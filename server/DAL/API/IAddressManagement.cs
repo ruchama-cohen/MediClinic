@@ -13,8 +13,9 @@ namespace DAL.API
         Task<Address?> FindExistingAddressAsync(int cityId, int streetId, int houseNumber, string postalCode);
         Task<int> CreateFullAddressAsync(string cityName, string streetName, int houseNumber, string postalCode);
 
-        // הוספנו פונקציות חדשות
         Task<List<City>> GetAllCitiesWithAddressesAsync();
-        Task<List<Street>> GetStreetsByCityIdAsync(int cityId);
+        Task<List<Street>> GetStreetsByCityIdAsync(int cityId);  
+
+
     }
 }

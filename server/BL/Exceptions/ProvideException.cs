@@ -2,9 +2,7 @@
 
 namespace BLL.Exceptions
 {
-    /// <summary>
-    /// רופא לא נמצא
-    /// </summary>
+    
     public class DoctorNotFoundException : ClinicBaseException
     {
         public DoctorNotFoundException(string doctorName)
@@ -23,9 +21,7 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// רופא לא פעיל
-    /// </summary>
+   
     public class DoctorNotActiveException : ClinicBaseException
     {
         public DoctorNotActiveException(string doctorName)
@@ -39,9 +35,7 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// שירות לא נמצא
-    /// </summary>
+    
     public class ServiceNotFoundException : ClinicBaseException
     {
         public ServiceNotFoundException(int serviceId)
@@ -60,9 +54,7 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// סניף לא נמצא
-    /// </summary>
+  
     public class BranchNotFoundException : ClinicBaseException
     {
         public BranchNotFoundException(int branchId)
@@ -81,9 +73,7 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// עיר לא נמצאה
-    /// </summary>
+
     public class CityNotFoundException : ClinicBaseException
     {
         public CityNotFoundException(string cityName)
@@ -102,9 +92,7 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// רחוב לא נמצא
-    /// </summary>
+    
     public class StreetNotFoundException : ClinicBaseException
     {
         public StreetNotFoundException(string streetName, string cityName)

@@ -23,15 +23,14 @@ namespace WebAPI.Controllers
 
             if (exceptionDetails != null)
             {
-                _logger.LogError(exceptionDetails.Error, "שגיאה במערכת התורים: {Message}", exceptionDetails.Error.Message);
+                _logger.LogError(exceptionDetails.Error, "Queue system error: {Message}", exceptionDetails.Error.Message);
             }
 
-            // טיפול בשגיאות תורים
             if (exceptionDetails?.Error is InvalidAppointmentDataException invalidAppointmentData)
             {
-                _logger.LogWarning("נתוני תור לא תקינים: {Message}", invalidAppointmentData.Message);
+                _logger.LogWarning("Invalid appointment data: {Message}", invalidAppointmentData.Message);
                 return BadRequest(CreateProblemDetails(
-                    title: "נתוני תור לא תקינים",
+                    title: "Invalid appointment data",
                     detail: invalidAppointmentData.Message,
                     statusCode: invalidAppointmentData.StatusCode,
                     errorCode: "INVALID_APPOINTMENT_DATA"
@@ -40,9 +39,9 @@ namespace WebAPI.Controllers
 
             if (exceptionDetails?.Error is AppointmentNotFoundException appointmentNotFound)
             {
-                _logger.LogWarning("תור לא נמצא: {Message}", appointmentNotFound.Message);
+                _logger.LogWarning("Appointment not found: {Message}", appointmentNotFound.Message);
                 return NotFound(CreateProblemDetails(
-                    title: "תור לא נמצא",
+                    title: "Appointment not found",
                     detail: appointmentNotFound.Message,
                     statusCode: appointmentNotFound.StatusCode,
                     errorCode: "APPOINTMENT_NOT_FOUND"
@@ -51,9 +50,9 @@ namespace WebAPI.Controllers
 
             if (exceptionDetails?.Error is SlotAlreadyBookedException slotBooked)
             {
-                _logger.LogWarning("תור כבר תפוס: {Message}", slotBooked.Message);
+                _logger.LogWarning("Slot already booked: {Message}", slotBooked.Message);
                 return Conflict(CreateProblemDetails(
-                    title: "התור כבר תפוס",
+                    title: "Slot already booked",
                     detail: slotBooked.Message,
                     statusCode: slotBooked.StatusCode,
                     errorCode: "SLOT_ALREADY_BOOKED"
@@ -62,9 +61,9 @@ namespace WebAPI.Controllers
 
             if (exceptionDetails?.Error is TimeConflictException timeConflict)
             {
-                _logger.LogWarning("חפיפה בזמנים: {Message}", timeConflict.Message);
+                _logger.LogWarning("Time conflict: {Message}", timeConflict.Message);
                 return Conflict(CreateProblemDetails(
-                    title: "חפיפה בזמני תורים",
+                    title: "Appointment time conflict",
                     detail: timeConflict.Message,
                     statusCode: timeConflict.StatusCode,
                     errorCode: "TIME_CONFLICT"
@@ -73,9 +72,9 @@ namespace WebAPI.Controllers
 
             if (exceptionDetails?.Error is PastAppointmentException pastAppointment)
             {
-                _logger.LogWarning("תור בעבר: {Message}", pastAppointment.Message);
+                _logger.LogWarning("Past appointment: {Message}", pastAppointment.Message);
                 return BadRequest(CreateProblemDetails(
-                    title: "תור בזמן עבר",
+                    title: "Past appointment",
                     detail: pastAppointment.Message,
                     statusCode: pastAppointment.StatusCode,
                     errorCode: "PAST_APPOINTMENT"
@@ -84,9 +83,9 @@ namespace WebAPI.Controllers
 
             if (exceptionDetails?.Error is DoctorNotFoundException doctorNotFound)
             {
-                _logger.LogWarning("רופא לא נמצא: {Message}", doctorNotFound.Message);
+                _logger.LogWarning("Doctor not found: {Message}", doctorNotFound.Message);
                 return NotFound(CreateProblemDetails(
-                    title: "רופא לא נמצא",
+                    title: "Doctor not found",
                     detail: doctorNotFound.Message,
                     statusCode: doctorNotFound.StatusCode,
                     errorCode: "DOCTOR_NOT_FOUND"
@@ -95,9 +94,9 @@ namespace WebAPI.Controllers
 
             if (exceptionDetails?.Error is DoctorNotActiveException doctorNotActive)
             {
-                _logger.LogWarning("רופא לא פעיל: {Message}", doctorNotActive.Message);
+                _logger.LogWarning("Doctor not active: {Message}", doctorNotActive.Message);
                 return BadRequest(CreateProblemDetails(
-                    title: "רופא לא פעיל",
+                    title: "Doctor not active",
                     detail: doctorNotActive.Message,
                     statusCode: doctorNotActive.StatusCode,
                     errorCode: "DOCTOR_NOT_ACTIVE"
@@ -106,9 +105,9 @@ namespace WebAPI.Controllers
 
             if (exceptionDetails?.Error is PatientNotFoundException patientNotFound)
             {
-                _logger.LogWarning("מטופל לא נמצא: {Message}", patientNotFound.Message);
+                _logger.LogWarning("Patient not found: {Message}", patientNotFound.Message);
                 return NotFound(CreateProblemDetails(
-                    title: "מטופל לא נמצא",
+                    title: "Patient not found",
                     detail: patientNotFound.Message,
                     statusCode: patientNotFound.StatusCode,
                     errorCode: "PATIENT_NOT_FOUND"
@@ -117,20 +116,19 @@ namespace WebAPI.Controllers
 
             if (exceptionDetails?.Error is DatabaseException dbException)
             {
-                _logger.LogError(dbException, "שגיאת מסד נתונים: {Message}", dbException.Message);
+                _logger.LogError(dbException, "Database error: {Message}", dbException.Message);
                 return StatusCode(500, CreateProblemDetails(
-                    title: "שגיאת מסד נתונים",
-                    detail: "אירעה שגיאה במסד הנתונים, אנא נסה שוב מאוחר יותר",
+                    title: "Database error",
+                    detail: "A database error occurred. Please try again later.",
                     statusCode: 500,
                     errorCode: "DATABASE_ERROR"
                 ));
             }
 
-            // שגיאה כללית
-            _logger.LogError("שגיאה לא מזוהה: {Message}", exceptionDetails?.Error?.Message ?? "Unknown error");
+            _logger.LogError("Unhandled error: {Message}", exceptionDetails?.Error?.Message ?? "Unknown error");
             return StatusCode(500, CreateProblemDetails(
-                title: "שגיאה במערכת",
-                detail: "שגיאה לא צפויה במערכת, אנא רענן את הדף ונסה שוב",
+                title: "System error",
+                detail: "An unexpected system error occurred. Please refresh the page and try again.",
                 statusCode: 500,
                 errorCode: "UNKNOWN_ERROR"
             ));

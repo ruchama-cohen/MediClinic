@@ -20,9 +20,7 @@ namespace WebAPI.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// קבלת פרטי מטופל לפי PatientKey
-        /// </summary>
+        
         [HttpGet("by-key/{patientKey}")]
         public async Task<IActionResult> GetPatientByKey(int patientKey)
         {
@@ -70,9 +68,7 @@ namespace WebAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// עדכון חלקי של פרטי מטופל - כל השדות אופציונליים
-        /// </summary>
+        
         [HttpPut("update")]
         public async Task<IActionResult> UpdatePatient([FromBody] UpdatePatientRequest request)
         {
@@ -87,7 +83,6 @@ namespace WebAPI.Controllers
 
                 _logger.LogInformation("Updating patient: {PatientKey}", request.PatientKey);
 
-                // בדיקה אם סופקו נתוני כתובת חלקיים
                 if (request.Address != null)
                 {
                     bool hasAnyAddressField = request.Address.CityId.HasValue ||
@@ -147,9 +142,7 @@ namespace WebAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// שינוי סיסמה של מטופל
-        /// </summary>
+       
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
@@ -195,9 +188,7 @@ namespace WebAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// קבלת כל הערים הזמינות
-        /// </summary>
+        
         [HttpGet("cities")]
         public async Task<IActionResult> GetCities()
         {
@@ -222,9 +213,7 @@ namespace WebAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// קבלת רחובות לפי עיר
-        /// </summary>
+        
         [HttpGet("streets/{cityId}")]
         public async Task<IActionResult> GetStreetsByCity(int cityId)
         {
@@ -264,9 +253,7 @@ namespace WebAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// בדיקת מצב השרת
-        /// </summary>
+        
         [HttpGet("health")]
         public IActionResult HealthCheck()
         {

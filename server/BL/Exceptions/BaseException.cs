@@ -2,9 +2,7 @@
 
 namespace BLL.Exceptions
 {
-    /// <summary>
-    /// בסיס לכל השגיאות במערכת הקליניקה
-    /// </summary>
+   
     public abstract class ClinicBaseException : Exception
     {
         public int StatusCode { get; }
@@ -15,9 +13,7 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// שגיאת נתונים לא תקינים
-    /// </summary>
+    
     public class InvalidDataException : ClinicBaseException
     {
         public InvalidDataException(string fieldName)
@@ -36,9 +32,7 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// שגיאת מסד נתונים
-    /// </summary>
+    
     public class DatabaseException : ClinicBaseException
     {
         public DatabaseException(string operation)
@@ -52,9 +46,7 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// שגיאת הרשאות
-    /// </summary>
+
     public class UnauthorizedException : ClinicBaseException
     {
         public UnauthorizedException(string action)
@@ -68,9 +60,7 @@ namespace BLL.Exceptions
         }
     }
 
-    /// <summary>
-    /// שגיאת נתונים כפולים
-    /// </summary>
+   
     public class DuplicateDataException : ClinicBaseException
     {
         public DuplicateDataException(string entityType, string value)

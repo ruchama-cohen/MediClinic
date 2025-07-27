@@ -103,7 +103,6 @@ namespace BLL.Services
             Console.WriteLine($"Found existing patient: {existingPatient.PatientName}");
             bool hasChanges = false;
 
-            // עדכון שם אם סופק
             if (!string.IsNullOrWhiteSpace(name))
             {
                 string trimmedName = name.Trim();
@@ -118,7 +117,6 @@ namespace BLL.Services
                 }
             }
 
-            // עדכון אימייל אם סופק
             if (!string.IsNullOrWhiteSpace(email))
             {
                 string trimmedEmail = email.Trim();
@@ -133,7 +131,6 @@ namespace BLL.Services
                 }
             }
 
-            // עדכון טלפון אם סופק
             if (!string.IsNullOrWhiteSpace(phone))
             {
                 string trimmedPhone = phone.Trim();
@@ -148,7 +145,6 @@ namespace BLL.Services
                 }
             }
 
-            // עדכון כתובת - רק אם כל הפרטים סופקו או שכולם null
             bool hasAnyAddressData = cityId.HasValue || streetId.HasValue || houseNumber.HasValue || !string.IsNullOrWhiteSpace(postalCode);
             bool hasAllAddressData = cityId.HasValue && streetId.HasValue && houseNumber.HasValue && !string.IsNullOrWhiteSpace(postalCode);
 
@@ -159,7 +155,6 @@ namespace BLL.Services
                     throw new InvalidAppointmentDataException("To update address, all address fields must be provided (city, street, house number, postal code)");
                 }
 
-                // וולידציה של נתוני כתובת
                 if (cityId.Value <= 0)
                     throw new InvalidAppointmentDataException("Valid city is required");
 
@@ -175,7 +170,6 @@ namespace BLL.Services
 
                 Console.WriteLine($"Processing address update: City={cityId}, Street={streetId}, House={houseNumber}, Postal={trimmedPostalCode}");
 
-                // בדיקה אם יש כתובת קיימת עם הפרטים האלה
                 var existingAddress = await _addressManagement.FindExistingAddressAsync(
                     cityId.Value, streetId.Value, houseNumber.Value, trimmedPostalCode);
 
@@ -188,7 +182,6 @@ namespace BLL.Services
                 else
                 {
                     Console.WriteLine("Creating new address");
-                    // יצירת כתובת חדשה
                     var newAddress = new Address
                     {
                         CityId = cityId.Value,
@@ -213,7 +206,7 @@ namespace BLL.Services
             if (!hasChanges)
             {
                 Console.WriteLine("No changes detected, returning true");
-                return true; // אין שינויים, אבל זה בסדר
+                return true;
             }
 
             Console.WriteLine("Saving changes to database");

@@ -43,12 +43,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// רישום כל השירותים
 builder.Services.AddScoped<DB_Manager>();
 builder.Services.AddScoped<IBL, BlManager>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
-// DAL Services
 builder.Services.AddScoped<IPatientsManagement>(provider =>
 {
     var db = provider.GetRequiredService<DB_Manager>();
@@ -91,7 +89,6 @@ builder.Services.AddScoped<IAddressManagement>(provider =>
     return new AddressManagement(db);
 });
 
-// BLL Services
 builder.Services.AddScoped<IPasswordService, PasswordService>();
 
 builder.Services.AddScoped<IPatientService>(provider =>
